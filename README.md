@@ -9,4 +9,3 @@
 __Requirements__:
 
 - Total.js 4 - `$ npm install total4`
-- License for [Font-Awesome Pro Icons v5](https://fontawesome.com)
