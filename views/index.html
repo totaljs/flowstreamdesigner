@@ -1,0 +1,93 @@
+@{title(CONF.name)}
+@{layout('')}
+
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+	<meta http-equiv="X-UA-Compatible" content="IE=10" />
+	<meta name="robots" content="all,follow" />
+	<script src="@{'%cdn'}/spa.min@18.js"></script>
+	<link href="@{'%cdn'}/spa.min@18.css" rel="stylesheet" />
+	<script src="@{'%cdn'}/flowstream/editor.min@1.js"></script>
+	<link href="@{'%cdn'}/flowstream/editor.min@1.css" rel="stylesheet" />
+	@{import('meta', 'head', 'ui.css + default.css + editor.css', 'func.js + ui.js + editor.js', 'favicon.png')}
+</head>
+<body data---="exec"@{if query.darkmode === '1'} class="ui-dark"@{fi}>
+
+	<div data---="LAZY menu__null__style:2"></div>
+	<div data---="LAZY approve__null__cancel:@(Cancel)"></div>
+	<div data---="LAZY message__null__style:2"></div>
+	<div data---="LAZY notifybar"></div>
+	<div data---="LAZY fileuploader"></div>
+	<div data---="LAZY clipboard"></div>
+	<div data---="LAZY faicons"></div>
+	<div data---="LAZY timepicker"></div>
+	<div data---="LAZY datepicker"></div>
+	<div data---="LAZY directory__null__placeholder:@(Search)"></div>
+	<div data---="LAZY colorpicker"></div>
+	<div data---="LAZY floatinginput"></div>
+	<div data---="LAZY tooltip"></div>
+
+	<div data---="markdown"></div>
+	<div data---="paste"></div>
+	<div data---="shortcuts"></div>
+	<div data---="loading"></div>
+	<div data---="console__common.console__datasource:common.logs"></div>
+
+	<div data---="part__common.page__if:flow;url:/parts/flow.html;loading:0" class="hidden invisible"></div>
+	<div data---="part__common.page__if:componenteditor;url:/parts/component.html;invisible:1;reload:?/reload" class="hidden invisible"></div>
+
+	<div data---="importer__common.form__if:componentsform;url:/forms/components.html"></div>
+	<div data---="importer__common.form__if:sourcesform;url:/forms/sources.html"></div>
+	<div data---="importer__common.form2__if:sourceform;url:/forms/source.html"></div>
+	<div data---="importer__common.form__if:variablesform;url:/forms/variables.html"></div>
+	<div data---="importer__common.form__if:importform;url:/forms/import.html"></div>
+
+	<script>
+
+		var common = {};
+
+		common.secret = 'flowstream';
+		common.marketplace = '@{CONF.marketplace}';
+		common.cdn = '@{CONF.cdn_components}';
+		common.page = '';
+		common.tms = '@{query.tms}' === '1';
+		common.socket = '@{query.socket}';
+		common.logs = {};
+		common.logs.errors = { icon: 'fas fa-exclamation-circle', name: '@(Errors)', encode: false, items: [] };
+		common.page = common.socket ? 'flow' : '';
+		common.components = '@{query.components}';
+
+		if (!common.page)
+			location.href = 'https://www.totaljs.com/flowstream/';
+
+		$(document).on('click', function() {
+			W.parent && W.parent.postMessage(STRINGIFY({ TYPE: 'focus', SOURCE: 'flow', socket: NAV.query.socket }), '*');
+		});
+
+		DEF.dateformat = '@(yyyy-MM-dd)';
+		ENV('ts', '@(yyyy-MM-dd HH:mm:ss)');
+
+		ON('@flag showloading', function() {
+			SETTER('loading/show');
+		});
+
+		ON('@flag hideloading', function() {
+			SETTER('loading/hide', 1000);
+		});
+
+		SETTER(true, 'shortcuts/register', 'CMD+F, CTRL+F', function() {
+			$('.ui-layout-left').find('input').focus();
+		}, true);
+
+		SETTER(true, 'shortcuts/register', 'CMD+ENTER, CTRL+ENTER', function() {
+			if (common.page === 'flow' && !common.form && !common.form2)
+				EXEC('flow/submit');
+		}, true);
+
+	</script>
+
+</body>
+</html>

@@ -1,0 +1,5 @@
+name                  : FlowStream Designer v1
+allow_custom_titles   : true
+marketplace           : https://marketplace.totaljs.com
+cdn_components        : https://cdn.totaljs.com/flowstream/
+cdn                   : https://cdn.componentator.com

@@ -1,0 +1,15 @@
+{
+  "name": "flowstreamdesigner",
+  "description": "Total.js FlowStream Designer",
+  "version": "1.0.0",
+  "main": "index.js",
+  "dependencies": {
+    "total4": "latest"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["flowstream", "designer"],
+  "author": "Peter Širka",
+  "license": "MIT"
+}
