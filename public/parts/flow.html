@@ -674,7 +674,9 @@
 		};
 
 		exports.onpause = function(key, is) {
-			SETTER('websocket/send', { TYPE: 'pause', id: key, is: is });
+			var id = key.split('__')[1];
+			if (flow.data[id] && (!flow.data[id].changes || !flow.data[id].changes.newbie))
+				SETTER('websocket/send', { TYPE: 'pause', id: key, is: is });
 		};
 
 		exports.onmove = function(el, item) {
