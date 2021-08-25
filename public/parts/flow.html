@@ -5,7 +5,7 @@
 			<button class="exec apply" data-exec="?/submit" data-bind="?.changed__.highlight"><i class="fas fa-play"></i><span>@(APPLY)</span></button>
 		</div>
 		<div>
-			<button title="@(Pause)" class="exec" data-exec="?/pause" data-bind="?.stats.paused__.paused"><i class="fas fa-pause"></i><span></span></button>
+			<button title="@(Pause)" class="exec hidden" data-exec="?/pause" data-bind="?.stats.paused__.paused__|__?.meta.total__show:value>4045"><i class="fas fa-pause"></i><span></span></button>
 			<button title="@(Add)" class="exec green" data-exec="?/add"><i class="fa fa-plus-circle"></i></button>
 			<button title="@(Variables)" class="exec" data-exec="?/variables"><i class="fa fa-clipboard-list"></i></button>
 			<button title="@(Console)" class="exec" data-exec="?/console" data-bind="common.logs.errors.items.length__.red"><i class="fa fa-bug"></i></button>
@@ -731,6 +731,7 @@
 			switch (msg.TYPE) {
 
 				case 'flow/flowstream':
+					SET('flow.meta', msg);
 					SET('flow.stats.paused', msg.paused == true);
 					break;
 
