@@ -19,6 +19,8 @@ body.ui-dark { background-color: #202020 !important; }
 .header button.apply i { margin-right: 7px; color: #68B25B; }
 .header button.highlight { background-color: var(--color) !important; color: #FFF; }
 .header button.highlight i { color: #FFF !important; }
+.header button.paused { background-color: red !important; color: #FFF; }
+.header button.paused i { color: #FFF !important; }
 .header button.labeled { padding: 0 15px 0 13px !important; line-height: 30px; }
 .header button.labeled i { margin: 8px 7px 0 0; float: left; }
 .header button.changed { color: #FFF !important; background: #68B25B !important; animation: 1s blink infinite alternate forwards; }

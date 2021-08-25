@@ -5,6 +5,7 @@
 			<button class="exec apply" data-exec="?/submit" data-bind="?.changed__.highlight"><i class="fas fa-play"></i><span>@(APPLY)</span></button>
 		</div>
 		<div>
+			<button title="@(Pause)" class="exec" data-exec="?/pause" data-bind="?.stats.paused__.paused"><i class="fas fa-pause"></i><span></span></button>
 			<button title="@(Add)" class="exec green" data-exec="?/add"><i class="fa fa-plus-circle"></i></button>
 			<button title="@(Variables)" class="exec" data-exec="?/variables"><i class="fa fa-clipboard-list"></i></button>
 			<button title="@(Console)" class="exec" data-exec="?/console" data-bind="common.logs.errors.items.length__.red"><i class="fa fa-bug"></i></button>
@@ -49,7 +50,7 @@
 
 		<section data-type="main">
 			<div data---="viewbox__null__parent:auto;visibleX:true;visibleY:true;scrollbar:true;margin:0;scrollbarshadow:1">
-				<div data---="flow__?.data__width:6000;height:6000;grid:16;horizontal:1;snapping:5;steplines:1;infopath:?.info;undopath:?.undo;redopath:?.redo;ondrop:?/drop;contextmenu:?/contextmenu;dblclick:?/settings;outputoffsetY:15;inputoffsetY:15;onmove:?/onmove"></div>
+				<div data---="flow__?.data__width:6000;height:6000;grid:16;horizontal:1;snapping:5;steplines:1;infopath:?.info;undopath:?.undo;redopath:?.redo;ondrop:?/drop;contextmenu:?/contextmenu;dblclick:?/settings;outputoffsetY:15;inputoffsetY:15;onmove:?/onmove;onpause:?/onpause"></div>
 			</div>
 		</section>
 
@@ -665,6 +666,17 @@
 			}
 		};
 
+		exports.pause = function() {
+			var is = GET('?.stats.paused');
+			SETTER('loading/show');
+			SETTER('websocket/send', { TYPE: 'pause', is: is === true ? false : true });
+			SETTER('loading/hide', 3000);
+		};
+
+		exports.onpause = function(key, is) {
+			SETTER('websocket/send', { TYPE: 'pause', id: key, is: is });
+		};
+
 		exports.onmove = function(el, item) {
 			if (item.connected)
 				SETTER('websocket/send', { TYPE: 'move', id: item.id, data: { x: item.x, y: item.y }});
@@ -718,12 +730,16 @@
 
 			switch (msg.TYPE) {
 
+				case 'flow/flowstream':
+					SET('flow.stats.paused', msg.paused == true);
+					break;
+
 				case 'flow/stats':
 
 					if (common.page !== 'flow')
 						return;
 
-					SET('flow.stats', { messages: msg.messages, mm: msg.mm, pending: msg.pending, memory: msg.memory });
+					SET('flow.stats', { messages: msg.messages, mm: msg.mm, pending: msg.pending, memory: msg.memory, paused: msg.paused });
 
 					msg.traffic.priority.wait(function(key, next) {
 						var sleep = 500;
@@ -807,6 +823,21 @@
 
 				case 'flow/design':
 					loadflow(msg.data);
+					break;
+
+				case 'flow/pause':
+					var is = false;
+					if (msg.is) {
+						if (!flow.data.paused)
+							flow.data.paused = {};
+						flow.data.paused[msg.id] = 1;
+						is = true;
+					} else if (flow.data.paused) {
+						delete flow.data.paused[msg.id];
+						is = true;
+					}
+
+					is && UPD('flow.data', 1);
 					break;
 
 				case 'flow/move':
