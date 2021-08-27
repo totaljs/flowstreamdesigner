@@ -39,7 +39,7 @@
 
 			var id = model.id || FUNC.makeid('c');
 			model.body = FUNC.rtrim(model.body);
-			SETTER('websocket/send', { TYPE: 'component_save', id: id, data: model.body, callback: ASETTER('message/response @hideloading', exports.cancel) });
+			SETTER('websocket/send @showloading', { TYPE: 'component_save', id: id, data: model.body, callback: ASETTER('message/response @hideloading', exports.cancel) });
 		};
 
 		exports.cancel = function() {
