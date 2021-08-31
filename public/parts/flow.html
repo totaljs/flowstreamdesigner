@@ -675,8 +675,8 @@
 			SETTER('loading/hide', 3000);
 		};
 
-		exports.onconnect = function() {
-			if (flow.ready)
+		exports.onconnect = function(meta) {
+			if (flow.ready && !meta.init)
 				SET('flow.changed', true);
 		};
 
