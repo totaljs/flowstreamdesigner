@@ -483,13 +483,11 @@
 					if (!c)
 						continue;
 
-					if (com.outputs) {
+					if (com.outputs)
 						item.outputs = checkio(com.outputs, c.outputs);
-					}
 
-					if (com.inputs) {
+					if (com.inputs)
 						item.inputs = checkio(com.inputs, c.inputs);
-					}
 
 					item.x = com.x;
 					item.y = com.y;
