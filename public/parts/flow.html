@@ -438,6 +438,19 @@
 			}
 		};
 
+		var checkio = function(a, b) {
+			if (!a)
+				return;
+			if (!b)
+				return a;
+			if (a.length !== b.length)
+				return a;
+			for (var i = 0; i < a.length; i++) {
+				if (a[i].id !== b[i].id || a[i].name !== b[i].name)
+					return a;
+			}
+		};
+
 		exports.submit = function() {
 
 			SETTER('approve/show', '@(Are you sure you want to save and apply Flow?)', '"far fa-check-circle" @(Continue)', function() {
@@ -465,11 +478,18 @@
 					item.config = com.config;
 					item.component = com.component;
 
-					if (com.$outputs)
-						item.outputs = com.outputs;
+					// Check if the component exists
+					var c = flow.components.findItem('id', com.component);
+					if (!c)
+						continue;
 
-					if (com.$inputs)
-						item.inputs = com.inputs;
+					if (com.outputs) {
+						item.outputs = checkio(com.outputs, c.outputs);
+					}
+
+					if (com.inputs) {
+						item.inputs = checkio(com.inputs, c.inputs);
+					}
 
 					item.x = com.x;
 					item.y = com.y;
