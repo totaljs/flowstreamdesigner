@@ -464,6 +464,13 @@
 					item.connections = com.connections;
 					item.config = com.config;
 					item.component = com.component;
+
+					if (com.$outputs)
+						item.outputs = com.outputs;
+
+					if (com.$inputs)
+						item.inputs = com.inputs;
+
 					item.x = com.x;
 					item.y = com.y;
 					item.note = com.note;
@@ -547,8 +554,10 @@
 
 				obj.name = com.name.slug().replace(/\-/g, '');
 				obj.html = '<figure>' + com.html.format(key) + '</figure>';
-				obj.outputs = com.outputs ? CLONE(com.outputs) : null;
-				obj.inputs = com.inputs ? CLONE(com.inputs) : null;
+				obj.$outputs = !!obj.outputs;
+				obj.outputs = obj.outputs || (com.outputs ? CLONE(com.outputs) : null);
+				obj.$inputs = !!obj.outputs;
+				obj.inputs = obj.inputs || (com.inputs ? CLONE(com.inputs) : null);
 				obj.template = com.template ? Tangular.compile(com.template) : null;
 				obj.onmake = onmake;
 
@@ -675,8 +684,8 @@
 			SETTER('loading/hide', 3000);
 		};
 
-		exports.onconnect = function() {
-			if (flow.ready)
+		exports.onconnect = function(meta) {
+			if (flow.ready && !meta.init)
 				SET('flow.changed', true);
 		};
 
@@ -793,7 +802,15 @@
 					break;
 
 				case 'flow/redraw':
-					flow.data[msg.id] = msg.data;
+					var com = flow.components.findItem('id', flow.data[msg.id].component);
+
+					if (!msg.data.outputs && com)
+						msg.data.outputs = com.outputs ? CLONE(com.outputs) : null;
+
+					if (!msg.data.inputs && com)
+						msg.data.inputs = com.inputs ? CLONE(com.inputs) : null;
+
+					COPY(msg.data, flow.data[msg.id]);
 					flow.config[msg.id] = msg.data.config;
 					UPD('flow.data', 'update');
 					UPD('flow.config.' + msg.id);
