@@ -30,6 +30,8 @@
 		exports.submit = function() {
 
 			var model = GET('? @reset');
+			var id = model.id;
+
 			if (model.id) {
 				var com = flow.components[model.id];
 				com && OFF('configure_' + com.name.slug());
@@ -37,7 +39,16 @@
 				FREE();
 			}
 
-			var id = model.id || FUNC.makeid('c');
+			var m = model.body.match(/exports\.id(\s=).*?;/);
+			if (m) {
+				try {
+					id = new Function('exports', 'return ' + m[0])({});
+				} catch (e) {}
+			}
+
+			if (!id)
+				id = FUNC.makeid('c');
+
 			model.body = FUNC.rtrim(model.body);
 			SETTER('websocket/send @showloading', { TYPE: 'component_save', id: id, data: model.body, callback: ASETTER('message/response @hideloading', exports.cancel) });
 		};
