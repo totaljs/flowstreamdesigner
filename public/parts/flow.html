@@ -630,16 +630,18 @@
 			var css = [];
 			var groups = {};
 			var checksums_tmp = {};
+			var regname = /NAME/g;
 			var regreplace = /CLASS/g;
 			var regstatus = /STATUS/g;
+			var regicon = /ICON/g;
 			var regconfig = /CONFIG/g;
 
 			for (var i = 0; i < response.length; i++) {
 				var com = response[i];
 				var name = com.name.slug().replace(/\-/g, '');
 				checksums_tmp[com.id] = HASH(com.html);
-				com.html = com.html.replace(regreplace, name).replace(regstatus, '?.status.{0}').replace(regconfig, '?.config.{0}');
-				com.js && js.push(com.js.replace(regreplace, name));
+				com.html = com.html.replace(regicon, com.icon).replace(regname, com.name).replace(regstatus, '?.status.{0}').replace(regconfig, '?.config.{0}');
+				com.js && js.push(com.js.replace(regreplace, name).replace(regicon, com.icon).replace(regname, com.name));
 				com.css && css.push(com.css.replace(regreplace, 'f-' + name));
 				var g = com.group || 'Common';
 				if (groups[g])
