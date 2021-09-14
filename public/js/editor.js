@@ -774,15 +774,29 @@ COMPONENT('codemirror', 'linenumbers:true;required:false;trim:false;tabs:true;ma
 		});
 	});
 
-	CodeMirror.defineMode('totaljs_server', function(config) {
-		return CodeMirror.overlayMode(CodeMirror.getMode(config, 'text/javascript'), CodeMirror.getMode(config, 'totaljs:server'));
+	CodeMirror.defineMode('totaljs', function(config) {
+		var htmlbase = CodeMirror.getMode(config, 'text/html');
+		var totaljsinner = CodeMirror.getMode(config, 'totaljs:inner');
+		return CodeMirror.overlayMode(htmlbase, totaljsinner);
 	});
 
-	CodeMirror.defineMode('totaljs:server', function() {
+	CodeMirror.defineMode('totaljs_server', function(config) {
+		return CodeMirror.overlayMode(CodeMirror.getMode(config, 'text/javascript'), CodeMirror.getMode(config, 'totaljs:inner'));
+	});
+
+	CodeMirror.defineMode('totaljs:inner', function() {
 		return {
 			token: function(stream) {
+
 				if (stream.match(/@\(.*?\)/, true))
 					return 'variable-L';
+
+				if (stream.match(/\{\{.*?\}\}/, true))
+					return 'variable-A';
+
+				if (stream.match(/ICON|NAME|CONFIG|CLASS|STATUS/, true))
+					return 'variable-R';
+
 				stream.next();
 				return null;
 			}
