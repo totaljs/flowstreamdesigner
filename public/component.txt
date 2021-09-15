@@ -47,7 +47,7 @@
 </settings>
 
 <style>
-	.f-NAME {}
+	.CLASS {}
 </style>
 
 <script>
@@ -56,6 +56,6 @@
 
 <body>
 	<header>
-		<i class="fa fa-home"></i>A custom component
+		<i class="ICON"></i>NAME
 	</header>
 </body>
