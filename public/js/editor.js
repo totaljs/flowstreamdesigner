@@ -12,6 +12,7 @@ COMPONENT('codemirror', 'linenumbers:true;required:false;trim:false;tabs:true;ma
 	var autocomplete;
 	var autocomplete_unique;
 	var REGAUTOCOMPLETE = /(#)?[a-zA-Z0-9_-]{3,30}/g;
+	var lorem = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.'.split(' ');
 
 	self.getter = null;
 	self.nocompile();
@@ -189,6 +190,76 @@ COMPONENT('codemirror', 'linenumbers:true;required:false;trim:false;tabs:true;ma
 		self.html(((content ? '<div class="{0}-label' + (config.required ? ' {0}-label-required' : '') + '">' + (config.icon ? '<i class="fa fa-' + config.icon + '"></i> ' : '') + content + ':</div>' : '') + '<div class="{0}"></div>').format(cls));
 		container = self.find(cls2);
 
+		var tabulator = function() {
+
+			var cm = editor;
+			var cur = cm.getCursor();
+			var line = cm.getLine(cur.line);
+			var loremcount = 0;
+			var end = line.substring(cur.ch);
+
+			line.substring(0, cur.ch).replace(/lorem\d+$/i, function(text) {
+				loremcount = +text.match(/\d+/)[0];
+				cur.ch -= text.length;
+				return '';
+			});
+
+			if (loremcount) {
+				var builder = lorem.slice(0, loremcount).join(' ').replace(/(,|\.)$/, '');
+				cm.replaceRange(builder + (end || ''), { line: cur.line, ch: cur.ch }, { line: cur.line, ch: cur.cr });
+				cm.doc.setCursor({ line: cur.line, ch: cur.ch + builder.length });
+				return;
+			}
+
+			if (editor.options.mode === 'totaljs' || editor.options.mode === 'html') {
+
+				var index = fn.lastIndexOf(line, cur.ch, '\t', '>', ' ');
+				if (index === -1)
+					return CodeMirror.Pass;
+
+				var html = line.substring(index, cur.ch);
+				if ((/(div|ul|address|li|span|footer|header|main|table|strong|em|b|i|a|h|p|img|td|tr|th|hr|br|thead|tfoot|tbody|section|figure|section|dd|dl|dt)+(\.[a-z0-9-_])*/).test(html) || (/(^|\s)\.[a-z0-9-_]*/).test(html)) {
+					var cls = html.split('.');
+					if (!cls[0]) {
+						if (cls[1].substring(0, 2) === 'fa')
+							cls[0] = 'i';
+						else
+							cls[0] = 'div';
+					}
+					var tag = cls[0] === 'hr' || cls[0] === 'br' ? '<{0} />'.format(cls[0]) : cls[0] === 'img' ? '<img src="" alt="" />' : ('<{0}{1}></{0}>'.format(cls[0], cls[1] ? (' class="' + cls[1] + '"') : ''));
+					cm.replaceRange(line.substring(0, index) + tag + line.substring(cur.ch), { line: cur.line, ch: 0 }, { line: cur.line, ch: cur.cr });
+					cm.doc.setCursor({ line: cur.line, ch: index + (cls[0] === 'img' ? (tag.indexOf('"') + 1) : (tag.indexOf('>') + 1)) });
+					return;
+				}
+			}
+
+			return CodeMirror.Pass;
+		};
+
+		var comment = function() {
+			var sel = editor.getSelections();
+			var cur = editor.getCursor();
+			var mode = editor.getModeAt(cur);
+			var syntax = FUNC.getext(mode.helperType || mode.name);
+			var iscurrent = false;
+
+			if (sel.length === 1 && !sel[0]) {
+				var line = editor.getLine(cur.line);
+				sel[0] = line;
+				iscurrent = true;
+			}
+
+			for (var i = 0; i < sel.length; i++) {
+				sel[i] = sel[i].split('\n');
+				sel[i] = FUNC.comment(syntax, sel[i]).join('\n');
+			}
+
+			if (iscurrent)
+				editor.replaceRange(sel[0], { line: cur.line, ch: 0 }, { line: cur.line });
+			else
+				editor.replaceSelections(sel);
+		};
+
 		var options = {};
 		// options.autoRefresh = true;
 		options.lineNumbers = config.linenumbers;
@@ -201,7 +272,7 @@ COMPONENT('codemirror', 'linenumbers:true;required:false;trim:false;tabs:true;ma
 		// options.foldGutter = true;
 		//options.matchTags = { bothTags: true };
 		options.scrollPastEnd = true;
-		options.extraKeys = { 'Cmd-D': findmatch, 'Ctrl-D': findmatch };
+		options.extraKeys = { 'Cmd-D': findmatch, 'Ctrl-D': findmatch, 'Ctrl-/': comment, 'Cmd-/': comment, 'Ctrl--': comment, 'Cmd--': comment, Tab: tabulator };
 		options.styleActiveLine = true;
 		options.autoCloseTags = true;
 		options.autoCloseBrackets = true;
@@ -220,7 +291,6 @@ COMPONENT('codemirror', 'linenumbers:true;required:false;trim:false;tabs:true;ma
 		self.editor = editor;
 
 		editor.setOption('lint', { esversion: 6, expr: true, evil: true, unused: true, shadow: true, node: true, browser: true });
-
 		editor.on('keydown', function(editor, e) {
 
 			if (e.shiftKey && e.ctrlKey && (e.keyCode === 40 || e.keyCode === 38)) {

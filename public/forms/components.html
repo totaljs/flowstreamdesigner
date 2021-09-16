@@ -9,17 +9,18 @@
 					<script type="text/html">
 						{{ foreach n in value }}
 							<div class="listing-caption">{{ n.name }}</div>
-							<div class="listing listing-download">
+							<div class="listing-download">
 								{{ foreach m in n.items }}
-								<figure data-search="{{ m.id }} {{ m.author }}" class="exec" data-exec="?/install" data-id="{{ m.id }}" data-name="{{ m.name }}" data-version="{{ m.version }}" data-url="{{ m.url }}">
+								<figure data-search="{{ m.id }} {{ m.author }}" class="exec{{ if m.installed }} installed{{ fi }}" data-exec="?/install" data-id="{{ m.id }}" data-name="{{ m.name }}" data-version="{{ m.version }}" data-url="{{ m.url }}">
 									<section>
-										{{ if m.version }}<div class="version">@(Version:) {{ m.version }}</div>{{ fi }}
+										<!--{{ if m.version }}<div class="version">@(Version:) {{ m.version }}</div>{{ fi }}-->
 										<div class="icon"><i class="{{ m.icon | empty('fas fa-plug') }}"></i></div>
 										<div class="name">{{ if m.newupdate }}<span class="badge badge-green badge-small mr5 newupdate">@(new update)</span>{{ fi }}{{ m.name }}</div>
-										<div class="author">{{ m.author | empty }}</div>
+										<div class="author">@(Version:) {{ m.version | empty }}</div>
 									</section>
 								</figure>
 								{{ end }}
+								<div class="clearfix"></div>
 							</div>
 							<br />
 						{{ end }}
@@ -52,6 +53,7 @@
 
 					var com = flow.components.findItem('name', item.name);
 					item.newupdate = com ? com.version !== item.version : false;
+					item.installed = com != null;
 
 					if (item.newupdate)
 						opt.updates++;
@@ -184,6 +186,7 @@
 						model.id = com ? com.id : '';
 						model.body = response.trim();
 						SETTER('websocket/send', { TYPE: 'component_save', id: model.id || FUNC.makeid('c'), data: model.body });
+						el.aclass('installed');
 					}
 				});
 			};

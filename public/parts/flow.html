@@ -17,8 +17,8 @@
 			<button disabled title="@(Undo)" data-bind="?.undo__enabled:value && value.length" class="exec" data-exec="?/operation" data-type="undo"><i class="fa fa-undo"></i></button>
 			<button disabled title="@(Redo)" data-bind="?.redo__enabled:value && value.length" class="exec" data-exec="?/operation" data-type="redo"><i class="fa fa-redo"></i></button>
 			<button title="@(Zoom in)" class="exec" data-exec="?/operation" data-type="in"><i class="fa fa-search-plus"></i></button>
-			<!--<button title="@(Reset zoom)" class="exec" data-exec="?/operation" data-type="reset"><i class="fas fa-bullseye"></i></button>-->
 			<button title="@(Zoom out)" class="exec" data-exec="?/operation" data-type="out"><i class="fa fa-search-minus"></i></button>
+			<button title="@(Reset zoom)" class="exec hidden" data-exec="?/operation" data-type="reset" data-bind="?.info.zoom__show:value && value !== 100"><i class="fas fa-bullseye"></i></button>
 		</div>
 		<div>
 			<button title="@(Options)" class="exec" data-exec="?/options"><i class="fa fa-cog"></i></button>
@@ -50,7 +50,7 @@
 
 		<section data-type="main">
 			<div data---="viewbox__null__parent:auto;visibleX:true;visibleY:true;scrollbar:true;margin:0;scrollbarshadow:1">
-				<div data---="flow__?.data__width:6000;height:6000;grid:16;horizontal:1;snapping:5;steplines:1;infopath:?.info;undopath:?.undo;redopath:?.redo;ondrop:?/drop;contextmenu:?/contextmenu;dblclick:?/settings;outputoffsetY:15;inputoffsetY:15;onmove:?/onmove;onpause:?/onpause;onconnect:?/onconnect"></div>
+				<div data---="flow__?.data__width:6000;height:6000;grid:16;horizontal:1;snapping:5;steplines:1;infopath:?.info;undopath:?.undo;redopath:?.redo;ondrop:?/drop;contextmenu:?/contextmenu;dblclick:?/settings;outputoffsetY:15;inputoffsetY:15;onmove:?/onmove;onpause:?/onpause;onconnect:?/onconnect;$assign:Designer"></div>
 			</div>
 		</section>
 
@@ -135,8 +135,8 @@
 			opt.items = [];
 
 			opt.items.push({ id: 'create', name: '@(Create component)', icon: 'fa fa-code' });
+			opt.items.push({ id: 'sources', name: '@(TMS sources)', icon: 'fa fa-code-branch' });
 			opt.items.push({ id: 'opensource', name: '@(Download components)', icon: 'fa fa-cloud-download' });
-			opt.items.push({ id: 'sources', name: '@(Add TMS source)', icon: 'fa fa-code-branch' });
 
 			if (common.marketplace) {
 				opt.items.push('-');
@@ -217,6 +217,7 @@
 						opt.items.push({ id: 'settings', name: '@(Configure)', icon: 'fa fa-wrench', classname: 'b' });
 						opt.items.push('-');
 					}
+					opt.items.push({ id: 'clone', name: '@(Clone)', icon: 'far fa-clone' });
 					opt.items.push({ id: 'edit', name: '@(Edit)', icon: 'fas fa-laptop-code' });
 					opt.items.push({ id: 'copy', name: '@(Copy to clipboard)', icon: 'far fa-copy' });
 					opt.items.push({ id: 'copy2', name: '@(Copy source-code)', icon: 'far fa-copy' });
@@ -266,6 +267,10 @@
 					case 'remove':
 						SET('flow.changed', true);
 						CMD('flow.selected.clear');
+						break;
+
+					case 'clone':
+						exports.clone();
 						break;
 				}
 			};
@@ -325,7 +330,7 @@
 			SET('common.form', 'settings');
 		};
 
-		exports.settings_submit = function(hide) {
+		exports.settings_submit = function() {
 
 			var model = GET(FIND('#settingsvalidation').path + ' @clone');
 
@@ -342,7 +347,7 @@
 				SET('?.config.' + settings_current.id, model);
 			}
 
-			hide();
+			NUL('common.form');
 		};
 
 		exports.exporttocomponent = function() {
@@ -494,6 +499,7 @@
 					item.note = com.note;
 					item.connected = true;
 					com.changes = null;
+					com.connected = true;
 					output[item.id] = item;
 				}
 
@@ -503,6 +509,61 @@
 				CMD('flow.reset');
 			});
 
+		};
+
+		exports.clone = function() {
+
+			exports.scope();
+
+			var model = GET('?.data');
+			var selected = FIND('flow').selected();
+			var add = [];
+			var cloned = {};
+			var now = Date.now();
+
+			for (var item of selected.components) {
+				var instance = model[item.id];
+				var newbie = {};
+				newbie.id = 'i' + now.toString(36);
+				newbie.x = instance.x + 50;
+				newbie.y = instance.y + 50;
+				newbie.name = instance.name;
+				newbie.component = instance.component;
+				newbie.config = CLONE(instance.config);
+				newbie.connected = false;
+				newbie.connections = CLONE(instance.connections);
+				newbie.name = instance.name.slug().replace(/\-/g, '');
+				newbie.html = instance.html;
+				newbie.$outputs = instance.$outputs;
+				newbie.outputs = instance.outputs ? CLONE(instance.outputs) : undefined;
+				newbie.$inputs = newbie.$inputs;
+				newbie.inputs = instance.inputs ? CLONE(instance.inputs) : undefined;
+				newbie.template = instance.template;
+				newbie.onmake = onmake;
+				cloned[instance.id] = newbie.id;
+				add.push(newbie);
+				now++;
+			}
+
+			for (var item of add) {
+				for (var key in item.connections) {
+					for (var output of item.connections[key]) {
+						if (cloned[output.id])
+							output.id = cloned[output.id];
+					}
+				}
+				model[item.id] = item;
+			}
+
+			Designer.find('.component-focused').rclass('component-focused');
+			Designer.op.unselect();
+
+			UPD('?.data', 'update');
+
+			setTimeout(function(add) {
+				for (var item of add)
+					Designer.op.select(item.id, true);
+			}, 500, add);
 		};
 
 		exports.sources = function() {
@@ -594,6 +655,7 @@
 		};
 
 		var onmake = function(el) {
+
 			var self = this;
 			var footer = el.find('footer');
 			var content;
