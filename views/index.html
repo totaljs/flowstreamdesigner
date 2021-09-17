@@ -87,6 +87,23 @@
 				EXEC('flow/submit');
 		}, true);
 
+		SETTER(true, 'shortcuts/register', 'CMD+D, CTRL+D', function() {
+			if (common.page === 'flow' && !common.form && !common.form2)
+				EXEC('flow/clone');
+		}, true);
+
+		SETTER(true, 'shortcuts/register', 'remove', function() {
+			if (common.page === 'flow' && !common.form && !common.form2)
+				CMD('flow.selected.clear');
+		}, true);
+
+		SETTER(true, 'shortcuts/register', 'save', function() {
+			if (common.page === 'componenteditor' && !common.form && !common.form2)
+				EXEC('componenteditor/submit');
+			else if (common.form === 'settings' && !FIND('#flowsettings').find('button[name="submit"]').prop('disabled'))
+				EXEC('flow/settings_submit');
+		}, true);
+
 	</script>
 
 </body>

@@ -2,6 +2,7 @@
 
 	exports.name = 'NAME';
 	exports.icon = 'fa fa-code';
+	exports.version = '1';
 	exports.config = {};
 	exports.inputs = [{ id: 'input', name: 'Input' }];
 	exports.outputs = [{ id: 'output', name: 'Output' }];
@@ -15,7 +16,9 @@
 		// instance.save();
 
 		instance.message = function($) {
-			$.destroy();
+			var data = $.data;
+			$.send('output', data);
+			// or $.destroy();
 		};
 
 		instance.configure = function() {
