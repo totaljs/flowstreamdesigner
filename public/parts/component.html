@@ -32,6 +32,8 @@
 			var model = GET('? @reset');
 			var id = model.id;
 
+			model.body = EDITOR.editor.getValue();
+
 			if (model.id) {
 				var com = flow.components[model.id];
 				com && OFF('configure_' + com.name.slug());
