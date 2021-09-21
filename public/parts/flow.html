@@ -843,6 +843,13 @@
 
 					SET('flow.meta', msg);
 					SET('flow.stats.paused', msg.paused == true);
+					if (NAV.query.socket) {
+						var socket = NAV.query.socket.replace(/^ws/, 'http');
+						var index = socket.indexOf('/', 9);
+						var origin = index === -1 ? socket : socket.substring(0, index);
+						if (origin && msg.origin !== origin)
+							SETTER('websocket/send', { TYPE: 'origin', body: origin });
+					}
 					break;
 
 				case 'flow/stats':
