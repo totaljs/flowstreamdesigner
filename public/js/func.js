@@ -29,6 +29,7 @@ FUNC.rtrim = function(value) {
 };
 
 FUNC.strim = function(value) {
+
 	var c = value.charAt(0);
 	if (c !== ' ' && c !== '\t')
 		return value;
