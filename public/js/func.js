@@ -4,6 +4,10 @@ FUNC.makeid = function(type) {
 	return type + Date.now().toString(36);
 };
 
+FUNC.trigger = function(el) {
+	SETTER('websocket/send', { TYPE: 'trigger', id: el.attrd2('id') });
+};
+
 FUNC.send = function(msg, callback, loading) {
 	loading && SETTER('loading/show');
 	if (callback)
