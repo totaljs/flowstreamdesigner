@@ -322,3 +322,6 @@ body.ui-dark { background-color: #202020 !important; }
 
 .ui-flow .component-io { transition: 0.3s all; }
 .ui-flow .output.connected .component-io.disabled,.ui-flow .input.connected .component-io.disabled,.ui-flow .output .component-io.disabled,.ui-flow .input .component-io.disabled { background-color: red !important; color: #FFF; border-radius: 100px; width: 16px; height: 16px; margin-top: 6px; }
+
+.mt10 { margin-top: 10px; }
+.mt5 { margin-top: 5px; }
