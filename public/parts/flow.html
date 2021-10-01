@@ -18,7 +18,7 @@
 			<button disabled title="@(Redo)" data-bind="?.redo__enabled:value && value.length" class="exec" data-exec="?/operation" data-type="redo"><i class="fa fa-redo"></i></button>
 			<button title="@(Zoom in)" class="exec" data-exec="?/operation" data-type="in"><i class="fa fa-search-plus"></i></button>
 			<button title="@(Zoom out)" class="exec" data-exec="?/operation" data-type="out"><i class="fa fa-search-minus"></i></button>
-			<button title="@(Reset zoom)" class="exec hidden" data-exec="?/operation" data-type="reset" data-bind="?.info.zoom__show:value && value !== 100"><i class="fas fa-bullseye"></i></button>
+			<button title="@(Zoom out/Zoom reset)" class="exec" data-exec="?/operation" data-type="out2"><i class="fas fa-search-location"></i></button>
 		</div>
 		<div>
 			<button title="@(Options)" class="exec" data-exec="?/options"><i class="fa fa-cog"></i></button>
@@ -49,8 +49,8 @@
 		</section>
 
 		<section data-type="main">
-			<div data---="viewbox__null__parent:auto;visibleX:true;visibleY:true;scrollbar:true;margin:0;scrollbarshadow:1">
-				<div data---="flow__?.data__width:6000;height:6000;grid:16;horizontal:1;snapping:5;steplines:1;infopath:?.info;undopath:?.undo;redopath:?.redo;ondrop:?/drop;contextmenu:?/contextmenu;dblclick:?/settings;outputoffsetY:15;inputoffsetY:15;onmove:?/onmove;onpause:?/onpause;onconnect:?/onconnect;$assign:Designer"></div>
+			<div data---="viewbox__null__parent:auto;visibleX:true;visibleY:true;scrollbar:true;margin:0;scrollbarshadow:0">
+				<div data---="flow__?.data__width:10000;height:10000;grid:16;horizontal:1;snapping:5;steplines:0;infopath:?.info;undopath:?.undo;redopath:?.redo;ondrop:?/drop;contextmenu:?/contextmenu;dblclick:?/settings;outputoffsetY:15;inputoffsetY:15;onmove:?/onmove;onpause:?/onpause;onconnect:?/onconnect;$assign:Designer;dblclickgroup:?/groupedit"></div>
 			</div>
 		</section>
 
@@ -81,6 +81,7 @@
 
 <!-- A temporary repository for components settings -->
 <div id="flow_repo" class="hidden"></div>
+<div data---="importer__common.form__if:groupform;url:/forms/group.html"></div>
 
 <script>
 
@@ -191,18 +192,32 @@
 
 		exports.operation = function(el) {
 			var type = el.attrd('type');
-			var name = type === 'in' || type === 'out' || type === 'reset' ? 'zoom' : type;
+			var name = type === 'in' || type === 'out' || type === 'reset' || type === 'out2' ? 'zoom' : type;
+			var val;
+
+			if (type === 'out2') {
+				if (GET('?').info.zoom !== 100) {
+					type = 'reset';
+				} else {
+					val = 60;
+					type = 'out';
+				}
+			}
+
 			if (name !== 'zoom')
 				type = '';
-			CMD('flow.' + name, type);
+
+			CMD('flow.' + name, type, val);
 		};
 
 		exports.contextmenu = function(e, type, meta) {
 
-			var item = GET('?.info.selected');
+			var info = GET('?.info');
+			var item = info.selected;
 			if (!item)
 				return;
 
+			var type = info.type;
 			var component = item.isconnection ? null : flow.components.findItem('id', item.component);
 
 			var opt = {};
@@ -227,6 +242,9 @@
 					opt.items.push({ id: 'copy2', name: '@(Copy source-code)', icon: 'far fa-copy' });
 					opt.items.push('-');
 				}
+			} else if (info.type === 'group') {
+				opt.items.push(item.name);
+				opt.items.push({ id: 'settings', name: '@(Configure)', icon: 'fa fa-wrench', classname: 'b' });
 			}
 
 			opt.items.push({ id: 'remove', name: '@(Remove)', icon: 'far fa-trash-alt red' });
@@ -262,7 +280,10 @@
 						break;
 
 					case 'settings':
-						exports.settings(item);
+						if (info.type === 'group')
+							exports.groupedit(item);
+						else
+							exports.settings(item);
 						break;
 
 					case 'edit':
@@ -275,8 +296,14 @@
 						break;
 
 					case 'remove':
-						SET('flow.changed', true);
+
 						CMD('flow.selected.clear');
+
+						if (type === 'group')
+							SETTER('websocket/send', { TYPE: 'groups', data: flow.data.groups });
+						else
+							SET('flow.changed', true);
+
 						break;
 
 					case 'clone':
@@ -316,7 +343,7 @@
 				move && dom.appendChild(domsettings);
 			} else {
 				initialized_settings[id] = 1;
-				$('#flow_settings').aclass('invisible').append($('#template_flowsettings').html().replace(/@NAME@/g, id).replace(/@BODY@/g, component.settings));
+				$('#flow_settings').aclass('invisible').append($('#template_flowsettings').html().replace(/@NAME@/g, id).replace(/@CONFIG@/g, '?').replace(/@BODY@/g, component.settings));
 				COMPILE();
 			}
 
@@ -481,7 +508,7 @@
 					var key = keys[i];
 					var com = model[key];
 
-					if (key === 'paused') {
+					if (key === 'paused' || key === 'groups') {
 						output[key] = com;
 						continue;
 					}
@@ -582,22 +609,37 @@
 		};
 
 		exports.drop = function(e, grid) {
+
 			var id = e.el.attrd('id');
-			var com = flow.components.findItem('id', id);
-			var obj = {};
-			obj.id = 'i' + Date.now().toString(36);
-			obj.component = id;
-			obj.x = e.offsetX;
-			obj.y = e.offsetY;
-			obj.name = com.name.slug().replace(/\-/g, '');
-			obj.outputs = com.outputs ? CLONE(com.outputs) : null;
-			obj.inputs = com.inputs ? CLONE(com.inputs) : null;
-			obj.config = CLONE(com.config);
-			obj.html = '<figure>' + com.html.format(obj.id) + '</figure>';
-			obj.template = com.template ? Tangular.compile(com.template) : null;
-			obj.onmake = onmake;
-			CMD('flow.components.add', obj);
-			SET('?.changed', true);
+
+			if (id === 'group') {
+				var obj = {};
+				obj.id = 'g' + Date.now().toString(36);
+				obj.x = e.offsetX;
+				obj.y = e.offsetY;
+				obj.width = 400;
+				obj.height = 400;
+				obj.name = '@(Group)';
+				CMD('flow.groups.add', obj);
+				SETTER('websocket/send', { TYPE: 'groups', data: flow.data.groups });
+			} else {
+				var com = flow.components.findItem('id', id);
+				var obj = {};
+				obj.id = 'i' + Date.now().toString(36);
+				obj.component = id;
+				obj.x = e.offsetX;
+				obj.y = e.offsetY;
+				obj.name = com.name.slug().replace(/\-/g, '');
+				obj.outputs = com.outputs ? CLONE(com.outputs) : null;
+				obj.inputs = com.inputs ? CLONE(com.inputs) : null;
+				obj.config = CLONE(com.config);
+				obj.html = '<figure>' + com.html.format(obj.id) + '</figure>';
+				obj.template = com.template ? Tangular.compile(com.template) : null;
+				obj.onmake = onmake;
+				SET('?.changed', true);
+				CMD('flow.components.add', obj);
+			}
+
 		};
 
 		var loadflow = function(response) {
@@ -606,30 +648,32 @@
 			SET('?.ready', false);
 
 			for (var key in response) {
-				if (key !== 'paused')
+				if (key !== 'paused' && key !== 'groups')
 					response[key].connected = true;
 			}
 
 			for (var key in flow.data) {
-				var instance = flow.data[key];
-				if (instance.changes && instance.changes.newbie) {
-					var item = {};
-					item.id = key;
-					item.connections = instance.connections;
-					item.config = instance.config;
-					item.component = instance.component;
-					item.x = instance.x;
-					item.y = instance.y;
-					item.note = instance.note;
-					item.connected = false;
-					response[key] = item;
-					uninitializedcount++;
+				if (key !== 'paused' && key !== 'groups') {
+					var instance = flow.data[key];
+					if (instance.changes && instance.changes.newbie) {
+						var item = {};
+						item.id = key;
+						item.connections = instance.connections;
+						item.config = instance.config;
+						item.component = instance.component;
+						item.x = instance.x;
+						item.y = instance.y;
+						item.note = instance.note;
+						item.connected = false;
+						response[key] = item;
+						uninitializedcount++;
+					}
 				}
 			}
 
 			for (var key in response) {
 
-				if (key === 'paused')
+				if (key === 'paused' || key === 'groups')
 					continue;
 
 				var obj = response[key];
@@ -794,9 +838,16 @@
 				SETTER('websocket/send', { TYPE: 'pause', id: key, is: is });
 		};
 
-		exports.onmove = function(el, item) {
-			if (item.connected)
+		exports.onmove = function(el, item, type) {
+			if (type === 'group')
+				SETTER('websocket/send', { TYPE: 'groups', data: flow.data.groups });
+			else if (item.connected)
 				SETTER('websocket/send', { TYPE: 'move', id: item.id, data: { x: item.x, y: item.y }});
+		};
+
+		exports.groupedit = function(item) {
+			SET('groupform @reset', CLONE(item));
+			SET('common.form', 'groupform');
 		};
 
 		exports.options = function(el) {
@@ -924,6 +975,7 @@
 					flow.config[msg.id] = msg.data.config;
 					UPD('flow.data', 'update');
 					UPD('flow.config.' + msg.id);
+					CMD('flow.refresh');
 					break;
 
 				case 'flow/note':
@@ -982,6 +1034,11 @@
 					item.x = msg.data.x;
 					item.y = msg.data.y;
 					item.element.closest('.component').css({ left: item.x, top: item.y });
+					CMD('flow.refresh');
+					break;
+
+				case 'flow/groups':
+					flow.data.groups = msg.data;
 					CMD('flow.refresh');
 					break;
 

@@ -325,3 +325,6 @@ body.ui-dark { background-color: #202020 !important; }
 
 .mt10 { margin-top: 10px; }
 .mt5 { margin-top: 5px; }
+
+.ui-flow-grid { stroke: #E9E9E9; }
+.ui-dark .ui-flow-grid { stroke: #2D2D2D; }

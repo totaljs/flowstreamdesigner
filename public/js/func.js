@@ -134,8 +134,10 @@ FUNC.strim = function(value) {
 	};
 })();
 
-FUNC.hex2rgba = function(hex) {
+FUNC.hex2rgba = function(hex, opacity) {
+
 	var c = (hex.charAt(0) === '#' ? hex.substring(1) : hex).split('');
+
 	if(c.length === 3)
 		c = [c[0], c[0], c[1], c[1], c[2], c[2]];
 
@@ -143,7 +145,7 @@ FUNC.hex2rgba = function(hex) {
 	if (a.length)
 		a = parseFloat(parseInt((parseInt(a.join(''), 16) / 255) * 1000) / 1000);
 	else
-		a = '1';
+		a = opacity || '1';
 
 	c = '0x' + c.join('');
 	return 'rgba(' + [(c >> 16) & 255, (c >> 8) & 255, c & 255].join(',') + ',' + a + ')';
