@@ -78,24 +78,33 @@
 			SETTER('loading/hide', 1000);
 		});
 
-		SETTER(true, 'shortcuts/register', 'CMD+F, CTRL+F', function() {
-			$('.ui-layout-left').find('input').focus();
-		}, true);
+		SETTER(true, 'shortcuts/register', 'CMD+F, CTRL+F', function(e) {
+			if (common.page === 'flow' && !common.form && !common.form2) {
+				$('.ui-layout-left').find('input').focus();
+				e.preventDefault();
+			}
+		});
 
 		SETTER(true, 'shortcuts/register', 'CMD+ENTER, CTRL+ENTER', function() {
-			if (common.page === 'flow' && !common.form && !common.form2)
+			if (common.page === 'flow' && !common.form && !common.form2) {
 				EXEC('flow/submit');
-		}, true);
+				e.preventDefault();
+			}
+		});
 
-		SETTER(true, 'shortcuts/register', 'CMD+D, CTRL+D', function() {
-			if (common.page === 'flow' && !common.form && !common.form2)
+		SETTER(true, 'shortcuts/register', 'CMD+D, CTRL+D', function(e) {
+			if (common.page === 'flow' && !common.form && !common.form2) {
 				EXEC('flow/clone');
-		}, true);
+				e.preventDefault();
+			}
+		});
 
-		SETTER(true, 'shortcuts/register', 'remove', function() {
-			if (common.page === 'flow' && !common.form && !common.form2)
+		SETTER(true, 'shortcuts/register', 'remove', function(e) {
+			if (common.page === 'flow' && !common.form && !common.form2) {
 				CMD('flow.selected.clear');
-		}, true);
+				e.preventDefault();
+			}
+		});
 
 		SETTER(true, 'shortcuts/register', 'save', function() {
 			if (common.page === 'componenteditor' && !common.form && !common.form2)
