@@ -335,7 +335,8 @@
 			if (dom.children[0] && dom.children[0] !== domsettings) {
 				domrepo.appendChild(dom.children[0]);
 				move = true;
-			}
+			} else if (!dom.children[0])
+				move = true;
 
 			RECONFIGURE('#flowsettings', { title: '@(Configuration): ' + component.name });
 
