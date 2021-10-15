@@ -85,7 +85,7 @@
 			}
 		});
 
-		SETTER(true, 'shortcuts/register', 'CMD+ENTER, CTRL+ENTER', function() {
+		SETTER(true, 'shortcuts/register', 'CMD+ENTER, CTRL+ENTER', function(e) {
 			if (common.page === 'flow' && !common.form && !common.form2) {
 				EXEC('flow/submit');
 				e.preventDefault();
@@ -96,8 +96,9 @@
 			if (common.page === 'flow' && !common.form && !common.form2) {
 				EXEC('flow/clone');
 				e.preventDefault();
+				e.stopPropagation();
 			}
-		});
+		}, true);
 
 		SETTER(true, 'shortcuts/register', 'remove', function(e) {
 			if (common.page === 'flow' && !common.form && !common.form2) {
@@ -111,6 +112,9 @@
 				EXEC('componenteditor/submit');
 			else if (common.form === 'settings' && !FIND('#flowsettings').find('button[name="submit"]').prop('disabled'))
 				EXEC('flow/settings_submit');
+			else if (common.page === 'flow' && !common.form && !common.form2)
+				EXEC('flow/submit');
+
 		}, true);
 
 	</script>
