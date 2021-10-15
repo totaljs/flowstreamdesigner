@@ -78,6 +78,21 @@
 			SETTER('loading/hide', 1000);
 		});
 
+		function saveshortcut(e) {
+			var is = false;
+			if (common.page === 'componenteditor' && !common.form && !common.form2) {
+				EXEC('componenteditor/submit');
+				is = true;
+			} else if (common.form === 'settings' && !FIND('#flowsettings').find('button[name="submit"]').prop('disabled')) {
+				EXEC('flow/settings_submit');
+				is = true;
+			} else if (common.page === 'flow' && !common.form && !common.form2) {
+				EXEC('flow/submit');
+				is = true;
+			}
+			is && e && e.preventDefault();
+		}
+
 		SETTER(true, 'shortcuts/register', 'CMD+F, CTRL+F', function(e) {
 			if (common.page === 'flow' && !common.form && !common.form2) {
 				$('.ui-layout-left').find('input').focus();
@@ -85,12 +100,7 @@
 			}
 		});
 
-		SETTER(true, 'shortcuts/register', 'CMD+ENTER, CTRL+ENTER', function(e) {
-			if (common.page === 'flow' && !common.form && !common.form2) {
-				EXEC('flow/submit');
-				e.preventDefault();
-			}
-		});
+		SETTER(true, 'shortcuts/register', 'CMD+ENTER, CTRL+ENTER', saveshortcut);
 
 		SETTER(true, 'shortcuts/register', 'CMD+D, CTRL+D', function(e) {
 			if (common.page === 'flow' && !common.form && !common.form2) {
@@ -107,15 +117,7 @@
 			}
 		});
 
-		SETTER(true, 'shortcuts/register', 'save', function() {
-			if (common.page === 'componenteditor' && !common.form && !common.form2)
-				EXEC('componenteditor/submit');
-			else if (common.form === 'settings' && !FIND('#flowsettings').find('button[name="submit"]').prop('disabled'))
-				EXEC('flow/settings_submit');
-			else if (common.page === 'flow' && !common.form && !common.form2)
-				EXEC('flow/submit');
-
-		}, true);
+		SETTER(true, 'shortcuts/register', 'save', saveshortcut, true);
 
 	</script>
 
