@@ -113,6 +113,7 @@
 		SETTER(true, 'shortcuts/register', 'remove', function(e) {
 			if (common.page === 'flow' && !common.form && !common.form2) {
 				CMD('flow.selected.clear');
+				SET('flow.changed', true);
 				e.preventDefault();
 			}
 		});
