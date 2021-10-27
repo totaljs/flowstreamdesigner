@@ -24,9 +24,9 @@
 			<button title="@(Options)" class="exec" data-exec="?/options"><i class="fa fa-cog"></i></button>
 		</div>
 		<div style="border-right:0">
-			<div class="help" data-bind="?.info.selected__show:value&&value.component__template">
+			<div class="help" data-bind="?.selected__show:value&&value.component__template">
 				<script type="text/html">
-					<div>{{ value.name }}</div>
+					<div>{{ value.name }} ({{ value.component | instancecount }})</div>
 					<div>@(ID): <b class="monospace">{{ value.id }}</b></div>
 				</script>
 			</div>
@@ -50,12 +50,28 @@
 
 		<section data-type="main">
 			<div data---="viewbox__null__parent:auto;visibleX:true;visibleY:true;scrollbar:true;margin:0;scrollbarshadow:0">
-				<div data---="flow__?.data__width:10000;height:10000;grid:16;horizontal:1;snapping:5;steplines:1;infopath:?.info;undopath:?.undo;redopath:?.redo;ondrop:?/drop;contextmenu:?/contextmenu;dblclick:?/settings;outputoffsetY:15;inputoffsetY:15;onmove:?/onmove;onpause:?/onpause;onconnect:?/onconnect;$assign:Designer;dblclickgroup:?/groupedit"></div>
+				<div data---="flow__?.data__width:10000;height:10000;grid:16;horizontal:1;snapping:5;steplines:1;infopath:?/refreshinfo;undopath:?.undo;redopath:?.redo;ondrop:?/drop;contextmenu:?/contextmenu;dblclick:?/settings;outputoffsetY:15;inputoffsetY:15;onmove:?/onmove;onpause:?/onpause;onconnect:?/onconnect;$assign:Designer;dblclickgroup:?/groupedit"></div>
 			</div>
 		</section>
 
 		<section data-type="bottom">
-			<div class="stats"><span class="pull-right" data-bind="?.stats.memory__text:Thelpers.filesize(value||0)"></span><i class="fa fa-refresh fa-spin mr5"></i> @(Processed messages:) <b data-bind="?.stats.messages__text__empty__format:0"></b> / pending <span class="gray" data-bind="?.stats.pending__text__empty__format:0"></span></div>
+			<div class="stats">
+				<div class="realtime">
+					<i class="fa fa-calculator"></i>@(Count): <b data-bind="?.stats.messages__text__empty__format:0"></b>
+				</div>
+				<div class="realtime">
+					<i class="fa fa-refresh fa-spin"></i>@(Pending): <span class="gray" data-bind="?.stats.pending__text__empty__format:0"></span>
+				</div>
+				<div class="realtime">
+					<i class="far fa-clock"></i>@(Per minute): <span class="gray" data-bind="?.stats.mm__text__empty__format:0"></span>
+				</div>
+				<div class="realtime">
+					<i class="fas fa-code-branch"></i>@(Instances): <span class="gray" data-bind="?.connected__text__empty__format:0"></span>
+				</div>
+				<div class="realtime">
+					<i class="fas fa-microchip"></i>@(Memory): <span class="gray" data-bind="?.stats.memory__text:Thelpers.filesize(value||0)"></span>
+				</div>
+			</div>
 		</section>
 
 	</div>
@@ -88,6 +104,16 @@
 	if (!W.flow)
 		W.flow = { data: {}, note: {}, config: {}, variables: {}, variables2: {}, status: {}, errors: {}, calls: {}, callbacks: {} };
 
+	Thelpers.instancecount = function(id) {
+		var count = 0;
+		for (var key in flow.data) {
+			var instance = flow.data[key];
+			if (instance.component === id)
+				count++;
+		}
+		return count;
+	};
+
 	// Reads flow statuses
 	SETTER(true, 'websocket/send', { TYPE: 'flow' });
 
@@ -117,6 +143,13 @@
 		};
 
 		exports.reload = function() {
+		};
+
+		exports.refreshinfo = function(data) {
+			var model = GET('?');
+			if (model.selected !== data.selected)
+				SET('?.selected', data.selected);
+			SET('?.info', data);
 		};
 
 		exports.call = function(id, data, callback) {
@@ -635,6 +668,8 @@
 		var loadflow = function(response) {
 
 			var uninitializedcount = 0;
+			var count = 0;
+
 			SET('?.ready', false);
 
 			for (var key in response) {
@@ -685,14 +720,17 @@
 				obj.template = com.template ? Tangular.compile(com.template) : null;
 				obj.onmake = onmake;
 
-				if (obj.connected !== false)
+				if (obj.connected !== false) {
 					obj.connected = true;
+					count++;
+				}
 
 				flow.note[obj.id] = obj.note;
 				flow.config[obj.id] = obj.config;
 			}
 
 			exports.scope();
+			SET('?.connected', count);
 			SET('?.data', response);
 			SET('?.changed', uninitializedcount > 0);
 			SET('?.ready', true, 500);
@@ -842,17 +880,27 @@
 
 		exports.options = function(el) {
 
+			var model = GET('?');
 			var opt = {};
 			opt.element = el;
 			opt.items = [];
 			opt.items.push({ id: 'export', name: '@(Export to the clipboard)', icon: 'fa fa-clipboard-check' });
 			opt.items.push({ id: 'exportcomponent', name: '@(Export as a component)', icon: 'fas fa-plug' });
+
+			if (model.meta.version >= 8) {
+				opt.items.push('-');
+				opt.items.push({ id: 'reset_stats', name: '@(Reset stats)', icon: 'fas fa-chart-line' });
+			}
+
 			opt.items.push('-');
 			opt.items.push({ id: 'clear', name: '@(Clear)', icon: 'far fa-trash-alt red' });
 
 			opt.callback = function(item) {
 
 				switch (item.id) {
+					case 'reset_stats':
+						SETTER('websocket/send', { TYPE: 'reset_stats' });
+						break;
 					case 'exportcomponent':
 						exports.exporttocomponent();
 						break;

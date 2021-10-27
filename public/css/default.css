@@ -115,8 +115,13 @@ body.ui-dark { background-color: #202020 !important; }
 .ui-dark .ui-largeform-options { background-color: #333; border-color: #333; }
 .ui-dark .ui-largeform-options:hover { border-color: #404040; }
 
-.flow .stats { height: 30px; background-color: #FFF; line-height: 30px; padding: 0 10px; font-size: 11px; position: absolute; left: 0; right: 0; bottom: 0; z-index: 2; }
+.flow .stats { height: 30px; background-color: #FFF; line-height: 30px; padding: 0 10px; font-size: 11px; position: absolute; left: 0; right: 0; bottom: 0; z-index: 2; text-align: center; }
+.flow .stats .realtime { min-width: 150px; padding: 0 7px; border-left: 1px solid #E0E0E0; position: relative; display: inline-block; }
+.flow .stats .realtime i { margin-right: 5px; }
+.flow .stats .realtime:first-child { border-left: 0; }
+
 .ui-dark .flow .stats { background-color: #252525; }
+.ui-dark .flow .stats .realtime { border-left-color: #404040; }
 
 .ui-flow header { padding: 8px; }
 .ui-flow header i { color: var(--color); margin-right: 5px; }

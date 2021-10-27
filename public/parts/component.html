@@ -57,6 +57,9 @@
 
 		exports.cancel = function() {
 			SET('common.page', 'flow');
+			setTimeout(function() {
+				EMIT('resize');
+			}, 100);
 		};
 
 		exports.appendcustom = function(fn) {
