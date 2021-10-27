@@ -4,8 +4,19 @@ FUNC.makeid = function(type) {
 	return type + Date.now().toString(36);
 };
 
-FUNC.trigger = function(el) {
-	SETTER('websocket/send', { TYPE: 'trigger', id: el.attrd2('id') });
+FUNC.trigger = function(el, data) {
+	if (data && data.constructor !== Object)
+		data = null;
+	if (!data || typeof(data) !== 'object')
+		data = {};
+	setTimeout(function(id, data) {
+		if (id && flow.data[id] && flow.data[id].connected) {
+			data.TYPE = 'trigger';
+			data.id = id;
+			SETTER('websocket/send', data);
+		}
+	}, 10, el instanceof jQuery ? el.attrd2('id') : el, data);
+	return data;
 };
 
 FUNC.send = function(msg, callback, loading) {
