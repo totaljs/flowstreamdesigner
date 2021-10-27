@@ -369,22 +369,11 @@
 		};
 
 		exports.settings_submit = function() {
-
 			var model = GET(FIND('#settingsvalidation').path + ' @clone');
-
 			settings_data.config = model;
 			EMIT('configure_save_' + settings_data.name, settings_data);
 			settings_current.config = settings_data.config;
-
-			if (settings_current.connected) {
-				// Send to the server
-				SETTER('websocket/send', { TYPE: 'reconfigure', id: settings_current.id, data: model });
-				SETTER('notifybar/success', '@(The configuration has been applied successfully)');
-			} else {
-				UPD('?.data.' + settings_current.id + '.config');
-				SET('?.config.' + settings_current.id, model);
-			}
-
+			FUNC.reconfigure(settings_current.id, model);
 			NUL('common.form');
 		};
 
@@ -1175,6 +1164,20 @@
 		}
 		return text;
 	}
+
+	FUNC.reconfigure = function(el, config) {
+		var id = (el instanceof jQuery ? el.attrd2('id') : el) || '';
+		var instance = flow.data[id];
+		if (instance) {
+			if (instance.connected) {
+				SETTER('websocket/send', { TYPE: 'reconfigure', id: id, data: config });
+				SETTER('notify/success', '@(The configuration has been applied successfully)');
+			} else {
+				UPD('flow.data.' + id + '.config');
+				SET('flow.config.' + id, model);
+			}
+		}
+	};
 
 	ON('markdown', function(el) {
 		el.find('pre code').each(function() {
