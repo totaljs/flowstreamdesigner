@@ -645,6 +645,7 @@
 				obj.width = 400;
 				obj.height = 400;
 				obj.name = '@(Group)';
+				obj.tab = flow.tab;
 				CMD('flow.groups.add', obj);
 				SETTER('websocket/send', { TYPE: 'groups', data: flow.data.groups });
 			} else {
@@ -661,6 +662,7 @@
 				obj.html = '<figure>' + com.html.format(obj.id) + '</figure>';
 				obj.template = com.template ? Tangular.compile(com.template) : null;
 				obj.onmake = onmake;
+				obj.tab = flow.tab;
 				SET('?.changed', true);
 				CMD('flow.components.add', obj);
 			}
@@ -676,7 +678,7 @@
 			SET('?.ready', false);
 
 			for (var key in response) {
-				if (key !== 'paused' && key !== 'groups')
+				if (key !== 'paused' && key !== 'groups' && key !== 'tabs')
 					response[key].connected = true;
 			}
 
