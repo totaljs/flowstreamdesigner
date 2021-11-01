@@ -531,7 +531,7 @@
 					var key = keys[i];
 					var com = model[key];
 
-					if (key === 'paused' || key === 'groups') {
+					if (key === 'paused' || key === 'groups' || key === 'tabs') {
 						output[key] = com;
 						continue;
 					}
@@ -557,6 +557,7 @@
 					item.x = com.x;
 					item.y = com.y;
 					item.note = com.note;
+					item.tab = com.tab;
 					item.connected = true;
 					com.changes = null;
 					com.connected = true;
@@ -600,6 +601,7 @@
 				newbie.inputs = instance.inputs ? CLONE(instance.inputs) : undefined;
 				newbie.template = instance.template;
 				newbie.onmake = onmake;
+				newbie.tab = instance.tab;
 				cloned[instance.id] = newbie.id;
 				add.push(newbie);
 				now++;
@@ -669,6 +671,7 @@
 
 			var uninitializedcount = 0;
 			var count = 0;
+			var blacklist = { tabs: 1, paused: 1, groups: 1 };
 
 			SET('?.ready', false);
 
@@ -678,7 +681,7 @@
 			}
 
 			for (var key in flow.data) {
-				if (key !== 'paused' && key !== 'groups') {
+				if (!blacklist[key]) {
 					var instance = flow.data[key];
 					if (instance.changes && instance.changes.newbie) {
 						var item = {};
@@ -689,6 +692,7 @@
 						item.x = instance.x;
 						item.y = instance.y;
 						item.note = instance.note;
+						item.tab = instance.tab;
 						item.connected = false;
 						response[key] = item;
 						uninitializedcount++;
@@ -698,7 +702,7 @@
 
 			for (var key in response) {
 
-				if (key === 'paused' || key === 'groups')
+				if (blacklist[key])
 					continue;
 
 				var obj = response[key];
