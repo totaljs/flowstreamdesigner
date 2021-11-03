@@ -48,18 +48,23 @@
 
 	<script>
 
-		var common = {};
+		MAKE('common', function(common) {
+			common.secret = 'flowstream';
+			common.marketplace = '@{CONF.marketplace}';
+			common.cdn = '@{CONF.cdn_components}';
+			common.page = '';
+			common.tms = '@{query.tms}' === '1';
+			common.socket = '@{query.socket}';
+			common.logs = {};
+			common.logs.errors = { icon: 'fas fa-exclamation-circle', name: '@(Errors)', encode: false, items: [] };
+			common.page = common.socket ? 'flow' : '';
+			common.components = '@{query.components}';
 
-		common.secret = 'flowstream';
-		common.marketplace = '@{CONF.marketplace}';
-		common.cdn = '@{CONF.cdn_components}';
-		common.page = '';
-		common.tms = '@{query.tms}' === '1';
-		common.socket = '@{query.socket}';
-		common.logs = {};
-		common.logs.errors = { icon: 'fas fa-exclamation-circle', name: '@(Errors)', encode: false, items: [] };
-		common.page = common.socket ? 'flow' : '';
-		common.components = '@{query.components}';
+			if (common.curvedlines == null)
+				common.curvedlines = false;
+		});
+
+		CACHEPATH('common.curvedlines', '1 year');
 
 		if (!common.page)
 			location.href = 'https://www.totaljs.com/flowstream/';

@@ -50,7 +50,7 @@
 
 		<section data-type="main">
 			<div data---="viewbox__null__parent:auto;visibleX:true;visibleY:true;scrollbar:true;margin:0;scrollbarshadow:0">
-				<div data---="flow__?.data__width:10000;height:10000;grid:16;horizontal:1;snapping:5;steplines:1;infopath:?/refreshinfo;undopath:?.undo;redopath:?.redo;ondrop:?/drop;contextmenu:?/contextmenu;dblclick:?/settings;outputoffsetY:15;inputoffsetY:15;onmove:?/onmove;onpause:?/onpause;onconnect:?/onconnect;$assign:Designer;dblclickgroup:?/groupedit"></div>
+				<div data---="flow__?.data__width:10000;height:10000;grid:16;horizontal:1;snapping:5;=curvedlines:common.curvedlines;steplines:1;infopath:?/refreshinfo;undopath:?.undo;redopath:?.redo;ondrop:?/drop;contextmenu:?/contextmenu;dblclick:?/settings;outputoffsetY:15;inputoffsetY:15;onmove:?/onmove;onpause:?/onpause;onconnect:?/onconnect;$assign:Designer;dblclickgroup:?/groupedit"></div>
 			</div>
 		</section>
 
@@ -893,10 +893,11 @@
 			opt.items.push({ id: 'export', name: '@(Export to the clipboard)', icon: 'fa fa-clipboard-check' });
 			opt.items.push({ id: 'exportcomponent', name: '@(Export as a component)', icon: 'fas fa-plug' });
 
-			if (model.meta.version >= 8) {
-				opt.items.push('-');
+			opt.items.push('-');
+			opt.items.push({ id: 'curvedlines', name: '@(Curved lines)', icon: 'fas fa-bezier-curve', selected: common.curvedlines == true });
+
+			if (model.meta.version >= 8)
 				opt.items.push({ id: 'reset_stats', name: '@(Reset stats)', icon: 'fas fa-chart-line' });
-			}
 
 			opt.items.push('-');
 			opt.items.push({ id: 'clear', name: '@(Clear)', icon: 'far fa-trash-alt red' });
@@ -904,6 +905,9 @@
 			opt.callback = function(item) {
 
 				switch (item.id) {
+					case 'curvedlines':
+						TOGGLE('common.curvedlines');
+						break;
 					case 'reset_stats':
 						SETTER('websocket/send', { TYPE: 'reset_stats' });
 						break;
