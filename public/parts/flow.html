@@ -1231,6 +1231,7 @@
 				SETTER('websocket/send', { TYPE: 'reconfigure', id: id, data: config });
 				SETTER('notify/success', '@(The configuration has been applied successfully)');
 			} else {
+				instance.config = config;
 				UPD('flow.data.' + id + '.config');
 				SET('flow.config.' + id, config);
 			}
