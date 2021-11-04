@@ -1109,14 +1109,12 @@
 					break;
 
 				case 'flow/variables':
-				case 'variables':
 					SET('flow.variables', msg.data);
 					W.flowinstances.exec('*', 'variables', msg.data);
 					CMD('flow.refresh');
 					break;
 
 				case 'flow/variables2':
-				case 'variables2':
 					SET('flow.variables2', msg.data);
 					W.flowinstances.exec('*', 'variables2', msg.data);
 					CMD('flow.refresh');
