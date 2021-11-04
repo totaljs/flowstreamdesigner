@@ -50,7 +50,7 @@
 
 		<section data-type="main">
 			<div data---="viewbox__null__parent:auto;visibleX:true;visibleY:true;scrollbar:true;margin:0;scrollbarshadow:0">
-				<div data---="flow__?.data__width:10000;height:10000;grid:16;horizontal:1;snapping:5;=curvedlines:common.curvedlines;steplines:1;infopath:?/refreshinfo;undopath:?.undo;redopath:?.redo;ondrop:?/drop;contextmenu:?/contextmenu;dblclick:?/settings;outputoffsetY:15;inputoffsetY:15;onmove:?/onmove;onpause:?/onpause;onconnect:?/onconnect;$assign:Designer;dblclickgroup:?/groupedit"></div>
+				<div data---="flow__?.data__width:10000;height:10000;grid:16;horizontal:1;snapping:5;=curvedlines:common.curvedlines;steplines:1;infopath:?/refreshinfo;undopath:?.undo;redopath:?.redo;ondrop:?/drop;contextmenu:?/contextmenu;dblclick:?/settings;onmove:?/onmove;onpause:?/onpause;onconnect:?/onconnect;$assign:Designer;dblclickgroup:?/groupedit"></div>
 			</div>
 		</section>
 
@@ -390,6 +390,7 @@
 				exports.call(this.id, data, callback);
 			};
 
+			W.flowinstances.exec(instance.id, 'settings', eventdata);
 			EMIT('configure_' + name, eventdata);
 			EMIT('configure_read_' + name, eventdata);
 
@@ -601,6 +602,7 @@
 				newbie.inputs = instance.inputs ? CLONE(instance.inputs) : undefined;
 				newbie.template = instance.template;
 				newbie.onmake = onmake;
+				newbie.onremove = onremove;
 				newbie.tab = instance.tab;
 				cloned[instance.id] = newbie.id;
 				add.push(newbie);
@@ -662,6 +664,7 @@
 				obj.html = '<figure>' + com.html.format(obj.id) + '</figure>';
 				obj.template = com.template ? Tangular.compile(com.template) : null;
 				obj.onmake = onmake;
+				obj.onremove = onremove;
 				obj.tab = flow.tab;
 				SET('?.changed', true);
 				CMD('flow.components.add', obj);
@@ -725,6 +728,7 @@
 				obj.inputs = obj.inputs || (com.inputs ? CLONE(com.inputs) : null);
 				obj.template = com.template ? Tangular.compile(com.template) : null;
 				obj.onmake = onmake;
+				obj.onremove = onremove;
 
 				if (obj.connected !== false) {
 					obj.connected = true;
@@ -741,6 +745,10 @@
 			SET('?.changed', uninitializedcount > 0);
 			SET('?.ready', true, 500);
 			CMD('flow.refresh');
+		};
+
+		var onremove = function() {
+			W.flowinstances.remove(this.id);
 		};
 
 		var onmake = function(el) {
@@ -773,6 +781,7 @@
 				}
 				target.aclass('f-' + self.name);
 			}
+			W.flowinstances.init(self.name, self, el);
 		};
 
 		var loadcomponents = function(response) {
@@ -793,7 +802,11 @@
 				var name = com.name.slug().replace(/\-/g, '');
 				checksums_tmp[com.id] = HASH(com.html);
 				com.html = com.html.replace(regid, com.id).replace(regicon, com.icon).replace(regname, com.name).replace(regstatus, '?.status.{0}').replace(regconfig, '?.config.{0}').replace(regreplace, 'f-' + name);
-				com.js && js.push(com.js.replace(regid, com.id).replace(regreplace, name).replace(regicon, com.icon).replace(regname, com.name));
+
+				if (com.js) {
+					var tmp = com.js.replace(regid, com.id).replace(regreplace, name).replace(regicon, com.icon).replace(regname, com.name);
+					js.push('W.flowinstances.current=\'' + name + '\';W.flowinstances.checksum=\'' + HASH(tmp).toString(36) + '\'' + tmp);
+				}
 				com.css && css.push(com.css.replace(regid, com.id).replace(regreplace, 'f-' + name));
 				var g = com.group || 'Common';
 				if (groups[g])
@@ -802,8 +815,10 @@
 					groups[g] = [com];
 			}
 
-			if (js.length)
+			if (js.length) {
 				new Function(js.join('\n'))();
+				W.flowinstances.current = '';
+			}
 
 			var arr = [];
 			for (var key in groups) {
@@ -821,7 +836,6 @@
 			SET('?.components2', arr);
 
 			var model = GET('?');
-
 			if (model.data) {
 				var rebuild = false;
 				for (var key in model.data) {
@@ -982,13 +996,13 @@
 					if (!common.console)
 						SET('common.console', true);
 					var com = msg.id ? flow.data[msg.id] : null;
-
 					if (com) {
 						if (flow.errors[msg.id])
 							flow.errors[msg.id].push(msg);
 						else
 							flow.errors[msg.id] = [msg];
 						UPD('flow.errors');
+						W.flowinstances.exec(msg.id, 'error', msg);
 					}
 
 					PUSH('^common.logs.errors.items', { type: 'error', body: msg.ts.format('[ts]') + ' - ' + Thelpers.encode(msg.error) + (com ? ' <b>(' + com.name + ' component)</b>' : ''), id: msg.id });
@@ -1008,6 +1022,7 @@
 
 				case 'flow/status':
 					SET('flow.status.' + msg.id, msg.data);
+					W.flowinstances.exec(msg.id, 'status', msg.data);
 					break;
 
 				case 'flow/redraw':
@@ -1031,6 +1046,7 @@
 					SET('flow.note.' + msg.id, msg.data);
 					if (common.page === 'flow')
 						CMD('flow.refresh');
+					W.flowinstances.exec(msg.id, 'note', msg.data);
 					break;
 
 				case 'flow/reset':
@@ -1051,6 +1067,7 @@
 								flow.errors[err.id].push(err);
 							else
 								flow.errors[err.id] = [err];
+							W.flowinstances.exec(err.id, 'error', err);
 						}
 					}
 
@@ -1082,6 +1099,7 @@
 					item.x = msg.data.x;
 					item.y = msg.data.y;
 					item.element.closest('.component').css({ left: item.x, top: item.y });
+					W.flowinstances.exec(msg.id, 'move', msg.data);
 					CMD('flow.refresh');
 					break;
 
@@ -1091,11 +1109,17 @@
 					break;
 
 				case 'flow/variables':
+				case 'variables':
 					SET('flow.variables', msg.data);
+					W.flowinstances.exec('*', 'variables', msg.data);
+					CMD('flow.refresh');
 					break;
 
 				case 'flow/variables2':
+				case 'variables2':
 					SET('flow.variables2', msg.data);
+					W.flowinstances.exec('*', 'variables2', msg.data);
+					CMD('flow.refresh');
 					break;
 
 				case 'flow/components':
@@ -1105,6 +1129,7 @@
 					if (msg.id && msg.data) {
 						SET('flow.data.' + msg.id + '.config', msg.data);
 						SET('flow.config.' + msg.id, msg.data);
+						W.flowinstances.exec(msg.id, 'configure', msg.data);
 					}
 					break;
 			}
@@ -1234,6 +1259,8 @@
 				instance.config = config;
 				UPD('flow.data.' + id + '.config');
 				SET('flow.config.' + id, config);
+				W.flowinstances.exec(instance.id, 'configure', config);
+				CMD('flow.refresh');
 			}
 		}
 	};
