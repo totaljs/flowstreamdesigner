@@ -667,6 +667,7 @@
 				obj.onremove = onremove;
 				obj.tab = flow.tab;
 				SET('?.changed', true);
+				SET('?.config.' + obj.id, obj.config);
 				CMD('flow.components.add', obj);
 			}
 
@@ -807,6 +808,7 @@
 					var tmp = com.js.replace(regid, com.id).replace(regreplace, name).replace(regicon, com.icon).replace(regname, com.name);
 					js.push('W.flowinstances.current=\'' + name + '\';W.flowinstances.checksum=\'' + HASH(tmp).toString(36) + '\';' + tmp);
 				}
+
 				com.css && css.push(com.css.replace(regid, com.id).replace(regreplace, 'f-' + name));
 				var g = com.group || 'Common';
 				if (groups[g])
