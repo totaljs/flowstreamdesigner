@@ -5,7 +5,7 @@
 			<button class="exec apply" data-exec="?/submit" data-bind="?.changed__.highlight"><i class="fas fa-play"></i><span>@(APPLY)</span></button>
 		</div>
 		<div>
-			<button title="@(Pause)" class="exec hidden" data-exec="?/pause" data-bind="?.stats.paused__.paused__|__?.meta.total__show:value>4045"><i class="fas fa-pause"></i><span></span></button>
+			<button title="@(Pause)" class="exec hidden" data-exec="?/pause" data-bind="?.stats.paused__.paused__|__?.head.total__show:value>4045"><i class="fas fa-pause"></i><span></span></button>
 			<button title="@(Add)" class="exec green" data-exec="?/add"><i class="fa fa-plus-circle"></i></button>
 			<button title="@(Variables)" class="exec" data-exec="?/variables"><i class="fa fa-clipboard-list"></i></button>
 			<button title="@(Console)" class="exec" data-exec="?/console" data-bind="common.logs.errors.items.length__.red"><i class="fa fa-bug"></i></button>
@@ -102,7 +102,7 @@
 <script>
 
 	if (!W.flow)
-		W.flow = { data: {}, note: {}, config: {}, variables: {}, variables2: {}, status: {}, errors: {}, calls: {}, callbacks: {} };
+		W.flow = { data: {}, note: {}, config: {}, variables: {}, variables2: {}, status: {}, errors: {}, calls: {}, callbacks: {}, head: {} };
 
 	Thelpers.instancecount = function(id) {
 		var count = 0;
@@ -421,9 +421,10 @@
 
 					for (var key in flow.design) {
 						var fi = flow.design[key];
-						if (fi.meta.type === 'input')
+						var metacomponent = fi.metacomponent || fi.meta; // due to backward compatibility
+						if (metacomponent.type === 'input')
 							inputs.push({ id: fi.id, name: fi.config.name });
-						else if (fi.meta.type === 'output')
+						else if (metacomponent.type === 'output')
 							outputs.push({ id: fi.id, name: fi.config.name });
 					}
 
@@ -913,7 +914,7 @@
 			opt.items.push('-');
 			opt.items.push({ id: 'curvedlines', name: '@(Curved lines)', icon: 'fas fa-bezier-curve', selected: common.curvedlines == true });
 
-			if (model.meta.version >= 8)
+			if (model.head.version >= 8)
 				opt.items.push({ id: 'reset_stats', name: '@(Reset stats)', icon: 'fas fa-chart-line' });
 
 			opt.items.push('-');
@@ -968,7 +969,7 @@
 					if (msg.name)
 						document.title = msg.name;
 
-					SET('flow.meta', msg);
+					SET('flow.head', msg);
 					SET('flow.stats.paused', msg.paused == true);
 					if (NAV.query.socket) {
 						var socket = NAV.query.socket.replace(/^ws/, 'http');
