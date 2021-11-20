@@ -421,10 +421,10 @@
 
 					for (var key in flow.design) {
 						var fi = flow.design[key];
-						var metacomponent = fi.metacomponent || fi.meta; // due to backward compatibility
-						if (metacomponent.type === 'input')
+						var template = fi.template || fi.meta; // due to backward compatibility
+						if (template.type === 'input')
 							inputs.push({ id: fi.id, name: fi.config.name });
-						else if (metacomponent.type === 'output')
+						else if (template.type === 'output')
 							outputs.push({ id: fi.id, name: fi.config.name });
 					}
 
