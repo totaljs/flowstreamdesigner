@@ -36,7 +36,7 @@ body.ui-dark { background-color: #202020 !important; }
 .header button.selected { background-color: #F0F0F0; }
 .header button.special, header a.special { color: #99982F; }
 .header > div { float: left; margin: 0 0 0 8px; padding-right: 6px; border-right: 1px solid #E0E0E0; height: 44px; }
-.header > div:first-child { margin-left: 0; }
+.header .apply-button { margin-left: 0; }
 
 .ui-dark .header { background-color: #202020; border-bottom-color: #404040; }
 .ui-dark .header button, .ui-dark header a { background-color: transparent; color: #FFF; }

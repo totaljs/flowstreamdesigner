@@ -8,8 +8,8 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
 	<meta http-equiv="X-UA-Compatible" content="IE=10" />
 	<meta name="robots" content="all,follow" />
-	<script src="@{'%cdn'}/spa.min@18.js"></script>
-	<link href="@{'%cdn'}/spa.min@18.css" rel="stylesheet" />
+	<script src="@{'%cdn'}/spa.min@19.js"></script>
+	<link href="@{'%cdn'}/spa.min@19.css" rel="stylesheet" />
 	<script src="@{'%cdn'}/flowstream/editor.min@1.js"></script>
 	<link href="@{'%cdn'}/flowstream/editor.min@1.css" rel="stylesheet" />
 	@{import('meta', 'head', 'ui.css + default.css + editor.css', 'func.js + ui.js + editor.js', 'favicon.png')}
@@ -59,6 +59,7 @@
 			common.logs.errors = { icon: 'fas fa-exclamation-circle', name: '@(Errors)', encode: false, items: [] };
 			common.page = common.socket ? 'flow' : '';
 			common.components = '@{query.components}';
+			common.clientid = Date.now().toString(36);
 
 			if (common.curvedlines == null)
 				common.curvedlines = false;
@@ -99,32 +100,44 @@
 			is && e && e.preventDefault();
 		}
 
-		SETTER(true, 'shortcuts/register', 'CMD+F, CTRL+F', function(e) {
-			if (common.page === 'flow' && !common.form && !common.form2) {
-				$('.ui-layout-left').find('input').focus();
-				e.preventDefault();
-			}
+		$(W).on('message', function(e) {
+			var msg = PARSE(e.originalEvent.data);
+			if (msg.TYPE === 'shortcut')
+				SETTER('shortcuts/exec', msg.key);
 		});
 
-		SETTER(true, 'shortcuts/register', 'CMD+ENTER, CTRL+ENTER', saveshortcut);
+		FIND('shortcuts', function(com) {
 
-		SETTER(true, 'shortcuts/register', 'CMD+D, CTRL+D', function(e) {
-			if (common.page === 'flow' && !common.form && !common.form2) {
-				EXEC('flow/clone');
-				e.preventDefault();
-				e.stopPropagation();
-			}
-		}, true);
+			com.register('CMD+F, CTRL+F', function(e) {
+				if (common.page === 'flow' && !common.form && !common.form2) {
+					$('.ui-layout-left').find('input').focus();
+					e && e.preventDefault();
+				}
+			});
 
-		SETTER(true, 'shortcuts/register', 'remove', function(e) {
-			if (common.page === 'flow' && !common.form && !common.form2) {
-				CMD('flow.selected.clear');
-				SET('flow.changed', true);
-				e.preventDefault();
-			}
+			com.register('CMD+ENTER, CTRL+ENTER', saveshortcut);
+
+			com.register('CMD+D, CTRL+D', function(e) {
+					console.log(arguments);
+				if (common.page === 'flow' && !common.form && !common.form2) {
+					EXEC('flow/clone');
+					if (e) {
+						e.preventDefault();
+						e.stopPropagation();
+					}
+				}
+			}, true);
+
+			com.register('remove', function(e) {
+				if (common.page === 'flow' && !common.form && !common.form2) {
+					CMD('flow.selected.clear');
+					SET('flow.changed', true);
+					e && e.preventDefault();
+				}
+			});
+
+			com.register('save', saveshortcut, true);
 		});
-
-		SETTER(true, 'shortcuts/register', 'save', saveshortcut, true);
 
 	</script>
 
