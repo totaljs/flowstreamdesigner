@@ -434,3 +434,14 @@ FUNC.comment = function(ext, sel) {
 	}
 	return sel;
 };
+
+
+FUNC.pref_save = function(key, value) {
+	var id = 'flow' + HASH(common.socket).toString(36) + '_' + key;
+	PREF.set(id, value, '1 month');
+};
+
+FUNC.pref_read = function(key) {
+	var id = 'flow' + HASH(common.socket).toString(36) + '_' + key;
+	return PREF[id];
+};
