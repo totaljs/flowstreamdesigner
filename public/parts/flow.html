@@ -1,8 +1,8 @@
 <div class="flow" data-scope="flow">
 
 	<header class="header">
-		<div class="pull-right">
-			<button title="@(Info)" class="exec pull-right" data-exec="?/info"><i class="fa fa-info-circle color"></i></button>
+		<div class="pull-right hidden" data-bind="?.head.version__show:value>11">
+			<button title="@(FlowStream information)" class="exec pull-right" data-exec="?/info"><i class="fa fa-info-circle color"></i></button>
 		</div>
 		<div>
 			<button class="exec apply" data-exec="?/submit" data-bind="?.changed__.highlight"><i class="fas fa-play"></i><span>@(APPLY)</span></button>
