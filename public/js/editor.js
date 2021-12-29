@@ -201,6 +201,7 @@ COMPONENT('codemirror', 'linenumbers:true;required:false;trim:false;tabs:true;ma
 			line.substring(0, cur.ch).replace(/lorem\d+$/i, function(text) {
 				loremcount = +text.match(/\d+/)[0];
 				cur.ch -= text.length;
+				self.change(true);
 				return '';
 			});
 
@@ -208,6 +209,7 @@ COMPONENT('codemirror', 'linenumbers:true;required:false;trim:false;tabs:true;ma
 				var builder = lorem.slice(0, loremcount).join(' ').replace(/(,|\.)$/, '');
 				cm.replaceRange(builder + (end || ''), { line: cur.line, ch: cur.ch }, { line: cur.line, ch: cur.cr });
 				cm.doc.setCursor({ line: cur.line, ch: cur.ch + builder.length });
+				self.change(true);
 				return;
 			}
 
@@ -229,6 +231,7 @@ COMPONENT('codemirror', 'linenumbers:true;required:false;trim:false;tabs:true;ma
 					var tag = cls[0] === 'hr' || cls[0] === 'br' ? '<{0} />'.format(cls[0]) : cls[0] === 'img' ? '<img src="" alt="" />' : ('<{0}{1}></{0}>'.format(cls[0], cls[1] ? (' class="' + cls[1] + '"') : ''));
 					cm.replaceRange(line.substring(0, index) + tag + line.substring(cur.ch), { line: cur.line, ch: 0 }, { line: cur.line, ch: cur.cr });
 					cm.doc.setCursor({ line: cur.line, ch: index + (cls[0] === 'img' ? (tag.indexOf('"') + 1) : (tag.indexOf('>') + 1)) });
+					self.change(true);
 					return;
 				}
 			}
@@ -258,6 +261,8 @@ COMPONENT('codemirror', 'linenumbers:true;required:false;trim:false;tabs:true;ma
 				editor.replaceRange(sel[0], { line: cur.line, ch: 0 }, { line: cur.line });
 			else
 				editor.replaceSelections(sel);
+
+			self.change(true);
 		};
 
 		var options = {};
