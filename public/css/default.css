@@ -12,6 +12,7 @@ body.ui-dark { background-color: #202020 !important; }
 	--monospace: Menlo, Consolas, monospace;
 }
 
+.color { color: var(--color); }
 .ui-dockable-layout { z-index: 1; }
 
 .header { background-color: #FFF; height: 45px; border-bottom: 1px solid #E0E0E0; padding-left: 8px; position: absolute; z-index: 1; box-shadow: 0 2px 5px rgba(0,0,0,0.05); left: 0; right: 0; }

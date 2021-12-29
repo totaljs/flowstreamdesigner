@@ -1,6 +1,9 @@
 <div class="flow" data-scope="flow">
 
 	<header class="header">
+		<div class="pull-right">
+			<button title="@(Info)" class="exec pull-right" data-exec="?/info"><i class="fa fa-info-circle color"></i></button>
+		</div>
 		<div>
 			<button class="exec apply" data-exec="?/submit" data-bind="?.changed__.highlight"><i class="fas fa-play"></i><span>@(APPLY)</span></button>
 		</div>
@@ -1217,6 +1220,26 @@
 				}
 			};
 			SETTER('menu/show', opt);
+		};
+
+		exports.info = function() {
+			var head = GET('?.head');
+			RECONFIGURE('#readme', { title: head.name, icon: head.icon || 'fas fa-question-circle' });
+			var body = '';
+
+			if (head.version)
+				body += '| @(Version) | __' + head.version + '__ |\n';
+
+			if (head.author)
+				body += '| @(Author) | __' + head.author + '__ |\n';
+
+			if (head.url)
+				body += '| @(Website) | <' + head.url + '> |\n';
+
+			body += (body ? '\n' : '') + (head.readme || '');
+
+			SET('common.readme', FUNC.strim(body));
+			SET('common.panel', 'readme');
 		};
 
 		ON('paste', function(text) {
