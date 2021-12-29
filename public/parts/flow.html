@@ -798,13 +798,14 @@
 			var regicon = /ICON/g;
 			var regconfig = /CONFIG/g;
 			var regid = /ID/g;
+			var reguid = /UID/g;
 
 			for (var i = 0; i < response.length; i++) {
 				var com = response[i];
 				var name = com.name.slug().replace(/\-/g, '');
 				checksums_tmp[com.id] = HASH(com.html);
 
-				com.html = (com.html || '').replace(regid, com.id).replace(regicon, com.icon).replace(regname, com.name).replace(regstatus, 'flow.status.{0}').replace(regconfig, 'flow.config.{0}').replace(regreplace, 'f-' + name);
+				com.html = (com.html || '').replace(reguid, '{0}').replace(regid, com.id).replace(regicon, com.icon).replace(regname, com.name).replace(regstatus, 'flow.status.{0}').replace(regconfig, 'flow.config.{0}').replace(regreplace, 'f-' + name);
 
 				if (com.js) {
 					var tmp = com.js.replace(regid, com.id).replace(regreplace, name).replace(regicon, com.icon).replace(regname, com.name);

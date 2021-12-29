@@ -864,7 +864,7 @@ COMPONENT('codemirror', 'linenumbers:true;required:false;trim:false;tabs:true;ma
 				if (stream.match(/\{\{.*?\}\}/, true))
 					return 'variable-A';
 
-				if (stream.match(/ICON|NAME|ID|CONFIG|CLASS|STATUS/, true))
+				if (stream.match(/ICON|NAME|UID|ID|CONFIG|CLASS|STATUS/, true))
 					return 'variable-R';
 
 				stream.next();
