@@ -4,7 +4,7 @@
 		<div class="pull-right hidden" data-bind="?.head.version__show:value>11">
 			<button title="@(FlowStream information)" class="exec pull-right" data-exec="?/info"><i class="fa fa-info-circle color"></i></button>
 		</div>
-		<div>
+		<div class="apply-button">
 			<button class="exec apply" data-exec="?/submit" data-bind="?.changed__.highlight"><i class="fas fa-play"></i><span>@(APPLY)</span></button>
 		</div>
 		<div>
@@ -41,7 +41,7 @@
 
 		<script type="text/plain">
 			{
-				left: { size: 265, minsize: 200, resize: true },
+				left: { size: 235, minsize: 200, resize: true },
 				bottom: { size: 30 },
 				main: {}
 			}
@@ -53,7 +53,7 @@
 
 		<section data-type="main">
 			<div data---="viewbox__null__parent:auto;visibleX:true;visibleY:true;scrollbar:true;margin:0;scrollbarshadow:0;$id:flowviewbox">
-				<div data---="flow__?.data__width:10000;height:10000;grid:16;horizontal:1;snapping:5;=curvedlines:common.curvedlines;steplines:1;infopath:?/refreshinfo;undopath:?.undo;redopath:?.redo;ondrop:?/drop;contextmenu:?/contextmenu;dblclick:?/settings;onmove:?/onmove;onpause:?/onpause;onconnect:?/onconnect;$assign:Designer;dblclickgroup:?/groupedit"></div>
+				<div data---="flow__?.data__width:10000;height:10000;grid:16;horizontal:1;snapping:5;=curvedlines:common.curvedlines;steplines:1;infopath:?/refreshinfo;undopath:?.undo;redopath:?.redo;ondrop:?/drop;contextmenu:?/contextmenu;dblclick:?/settings;onmove:?/onmove;onpause:?/onpause;onconnect:?/onconnect;$assign:Designer;dblclickgroup:?/groupedit;animationlimit:500"></div>
 			</div>
 		</section>
 
