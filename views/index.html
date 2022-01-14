@@ -118,7 +118,6 @@
 			com.register('CMD+ENTER, CTRL+ENTER', saveshortcut);
 
 			com.register('CMD+D, CTRL+D', function(e) {
-					console.log(arguments);
 				if (common.page === 'flow' && !common.form && !common.form2) {
 					EXEC('flow/clone');
 					if (e) {
