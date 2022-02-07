@@ -641,7 +641,7 @@
 
 		exports.drop = function(e, grid) {
 
-			var id = e.el.attrd('id');
+			var id = ATTRD(e.el);
 
 			if (id === 'group') {
 				var obj = {};
