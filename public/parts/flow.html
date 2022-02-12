@@ -1,20 +1,19 @@
 <div class="flow" data-scope="flow">
 
 	<header class="header">
-		<div class="pull-right hidden" data-bind="?.head.version__show:value>11">
+		<div class="pull-right">
+			<a href="https://docs.totaljs.com/flow10/" title="@(Documentation: Total.js Platform)" target="_blank" class="special"><i class="fa fa-book"></i></a>
 			<button title="@(FlowStream information)" class="exec pull-right" data-exec="?/info"><i class="fa fa-info-circle color"></i></button>
 		</div>
 		<div class="apply-button">
 			<button class="exec apply" data-exec="?/submit" data-bind="?.changed__.highlight"><i class="fas fa-play"></i><span>@(APPLY)</span></button>
 		</div>
 		<div>
-			<button title="@(Pause)" class="exec hidden" data-exec="?/pause" data-bind="?.stats.paused__.paused__|__?.head.total__show:value>4045"><i class="fas fa-pause"></i><span></span></button>
+			<button title="@(Pause)" class="exec" data-exec="?/pause" data-bind="?.stats.paused__.paused"><i class="fas fa-pause"></i><span></span></button>
 			<button title="@(Add)" class="exec green" data-exec="?/add"><i class="fa fa-plus-circle"></i></button>
 			<button title="@(Variables)" class="exec" data-exec="?/variables"><i class="fa fa-clipboard-list"></i></button>
 			<button title="@(Console)" class="exec" data-exec="?/console" data-bind="common.logs.errors.items.length__.red"><i class="fa fa-bug"></i></button>
 			<button title="@(Reset)" class="exec hidden" data-exec="?/reset" data-bind="common.logs.errors.items.length__show"><i class="fa fa-broom"></i></button>
-			<button title="@(Sources)" class="exec" data-exec="?/sources"><i class="fa fa-code-branch"></i></button>
-			<a href="https://docs.totaljs.com/" title="@(Documentation: Total.js Platform)" target="_blank" class="special"><i class="fa fa-book"></i></a>
 		</div>
 		<div>
 			<button disabled title="@(Undo)" data-bind="?.undo__enabled:value && value.length" class="exec" data-exec="?/operation" data-type="undo"><i class="fa fa-undo"></i></button>
@@ -27,7 +26,7 @@
 			<button title="@(Options)" class="exec" data-exec="?/options"><i class="fa fa-cog"></i></button>
 		</div>
 		<div style="border-right:0">
-			<div class="help" data-bind="?.selected__show:value&&value.component__template">
+			<div class="help pull-left mr10" data-bind="?.selected__show:value&&value.component__template">
 				<script type="text/html">
 					<div>{{ value.name }} ({{ value.component | instancecount }})</div>
 					<div>@(ID): <b class="monospace">{{ value.id }}</b></div>
@@ -86,7 +85,7 @@
 	</div>
 </script>
 
-<div data---="largeform__common.form__if:settings;width:800;visibleY:1;icon:fa fa-cog;submit:flow/settings_submit;$id:flowsettings" class="hidden invisible">
+<div data---="box__common.form__if:settings;width:800;visibleY:1;icon:fa fa-cog;submit:flow/settings_submit;$id:flowsettings" class="hidden invisible">
 	<div id="flow_settings"></div>
 	<nav data---="validation__settings__$id:settingsvalidation">
 		<button name="submit"><i class="far fa-check-circle"></i>@(APPLY)</button>
@@ -94,13 +93,14 @@
 	</nav>
 </div>
 
-<div data---="panel__common.panel__if:readme;width:500;title:@(Read me);zindex:10;$id:readme">
+<div data---="box__common.panel__if:readme;width:620;title:@(Read me);zindex:10;$id:readme;closeoutside:1;closeesc:1;background:false;transparent:true;align:right">
 	<div data-bind="common.readme__html:value?Thelpers.markdown(value, { element: el }):''" class="padding markdown-small"></div>
 </div>
 
 <!-- A temporary repository for components settings -->
 <div id="flow_repo" class="hidden"></div>
 <div data---="importer__common.form__if:groupform;url:/forms/group.html"></div>
+<div data---="importer__common.form__if:newflow;url:/forms/new.html"></div>
 
 <script>
 
@@ -132,6 +132,11 @@
 		}
 	});
 
+	CACHEPATH('common.curvedlines', '1 year');
+
+	if (common.curvedlines == null)
+		common.curvedlines = true;
+
 	PLUGIN('flow', function(exports) {
 
 		var TYPES = { pub: 1, sub: 1 };
@@ -140,6 +145,7 @@
 		var settings_current;
 		var settings_data;
 		var flowstreamid;
+		var init = false;
 
 		exports.init = function() {
 			ADD('websocket__null__url:{0}'.format(common.socket.replace(/^http/, 'ws').replace(/:/g, '\\:')) + ';encoder:false');
@@ -175,19 +181,16 @@
 			opt.items.push({ id: 'sources', name: '@(TMS sources)', icon: 'fa fa-code-branch' });
 			opt.items.push({ id: 'opensource', name: '@(Download components)', icon: 'fa fa-cloud-download' });
 
-			if (common.marketplace) {
+			/*if (common.marketplace) {
 				opt.items.push('-');
 				opt.items.push({ id: 'marketplace', name: '@(Marketplace)', icon: 'fa fa-shopping-basket', classname: 'b' });
-			}
+			}*/
 
 			opt.callback = function(item) {
 
 				switch (item.id) {
 					case 'create':
-						AJAX('GET /component.txt @showloading', function(response) {
-							SET('componenteditor @default', { flowstreamid: flowstreamid, body: response });
-							SET('common.page @hideloading', 'componenteditor');
-						});
+						exports.create();
 						break;
 					case 'opensource':
 						exports.components();
@@ -203,6 +206,14 @@
 			};
 
 			SETTER('menu/show', opt);
+		};
+
+		exports.create = function() {
+			common.form && NUL('common.form');
+			AJAX('GET /component.txt @showloading', function(response) {
+				SET('componenteditor @default', { flowstreamid: flowstreamid, body: response });
+				SET('common.page @hideloading', 'componenteditor');
+			});
 		};
 
 		exports.components = function() {
@@ -250,10 +261,11 @@
 
 			var info = GET('?.info');
 			var item = info.selected;
+
 			if (!item)
 				return;
 
-			var type = info.type;
+			type = info.type;
 			var component = item.isconnection ? null : flow.components.findItem('id', item.component);
 
 			var opt = {};
@@ -268,15 +280,21 @@
 				opt.items.push({ id: 'note', name: '@(Set a note)', icon: 'far fa-file-alt' });
 
 				if (!TYPES[component.type]) {
+
+					var meta = component.meta || EMPTYOBJECT;
+
 					if (component.settings) {
 						opt.items.push({ id: 'settings', name: '@(Configure)', icon: 'fa fa-wrench', classname: 'b' });
 						opt.items.push('-');
 					}
-					opt.items.push({ id: 'clone', name: '@(Clone)', icon: 'far fa-clone' });
-					opt.items.push({ id: 'edit', name: '@(Edit)', icon: 'fas fa-laptop-code' });
-					opt.items.push({ id: 'copy', name: '@(Copy to clipboard)', icon: 'far fa-copy' });
-					opt.items.push({ id: 'copy2', name: '@(Copy source-code)', icon: 'far fa-copy' });
-					opt.items.push('-');
+
+					if (!meta.readonly) {
+						opt.items.push({ id: 'clone', name: '@(Clone)', icon: 'far fa-clone' });
+						opt.items.push({ id: 'edit', name: '@(Edit)', icon: 'fas fa-laptop-code' });
+						opt.items.push({ id: 'copy', name: '@(Copy to clipboard)', icon: 'far fa-copy' });
+						opt.items.push({ id: 'copy2', name: '@(Copy source-code)', icon: 'far fa-copy' });
+						opt.items.push('-');
+					}
 				}
 			} else if (info.type === 'group') {
 				opt.items.push(item.name);
@@ -310,8 +328,14 @@
 						input.value = flow.note[item.id] || '';
 						input.maxlength = 10000;
 						input.callback = function(value) {
-							SETTER('websocket/send', { TYPE: 'note', id: item.id, data: value });
+							if (item.connected) {
+								SETTER('websocket/send', { TYPE: 'note', id: item.id, data: value });
+							} else {
+								item.note = value;
+								SET('flow.note.' + item.id, value);
+							}
 						};
+
 						SETTER('floatinginput/show', input);
 						break;
 
@@ -498,7 +522,7 @@
 		};
 
 		exports.readme = function(el) {
-			var id = el instanceof jQuery ? el.attrd2('id') : el;
+			var id = ATTRD(el);
 			var model = GET('?');
 			var item = model.components.findItem('id', id);
 			if (item && item.readme) {
@@ -642,12 +666,14 @@
 		exports.drop = function(e, grid) {
 
 			var id = ATTRD(e.el);
+			var offsetX = e.clickX || 0;
+			var offsetY = e.clickY || 0;
 
 			if (id === 'group') {
 				var obj = {};
 				obj.id = 'g' + Date.now().toString(36);
-				obj.x = e.offsetX;
-				obj.y = e.offsetY;
+				obj.x = e.offsetX + offsetX;
+				obj.y = e.offsetY + offsetY;
 				obj.width = 400;
 				obj.height = 400;
 				obj.name = '@(Group)';
@@ -659,8 +685,8 @@
 				var obj = {};
 				obj.id = 'i' + Date.now().toString(36);
 				obj.component = id;
-				obj.x = e.offsetX;
-				obj.y = e.offsetY;
+				obj.x = e.offsetX - offsetX;
+				obj.y = e.offsetY - offsetY;
 				obj.name = com.name.slug().replace(/\-/g, '');
 				obj.outputs = com.outputs ? CLONE(com.outputs) : null;
 				obj.inputs = com.inputs ? CLONE(com.inputs) : null;
@@ -774,6 +800,9 @@
 			var target = el.closest('.component').attr('data-bind', 'flow.errors.{0}__.iserror:value&&value.length__title:value?value[0].error:\'\''.format(self.id)).tclass('isnewbie', !self.connected);
 			var com = flow.components.findItem('id', self.component);
 			if (com) {
+
+				el.aclass(com.groupclass);
+
 				if (com.type === 'pub' || com.type === 'sub' || com.type === 'call' || com.type === 'input2' || com.type === 'output2' || com.type === 'input' || com.type === 'output') {
 					var span = el.find('.meta').find('span');
 					if (span.length)
@@ -800,15 +829,17 @@
 			var regstatus = /STATUS/g;
 			var regicon = /ICON/g;
 			var regconfig = /CONFIG/g;
+			var regtouch = /TOUCH/g;
 			var regid = /ID/g;
 			var reguid = /UID/g;
+			var colors = {};
 
 			for (var i = 0; i < response.length; i++) {
 				var com = response[i];
 				var name = com.name.slug().replace(/\-/g, '');
 				checksums_tmp[com.id] = HASH(com.html);
 
-				com.html = (com.html || '').replace(reguid, '{0}').replace(regid, com.id).replace(regicon, com.icon).replace(regname, com.name).replace(regstatus, 'flow.status.{0}').replace(regconfig, 'flow.config.{0}').replace(regreplace, 'f-' + name);
+				com.html = (com.html || '').replace(reguid, '{0}').replace(regid, com.id).replace(regicon, com.icon).replace(regname, com.name).replace(regtouch, 'flowinstances.instances.{0}').replace(regstatus, 'flow.status.{0}').replace(regconfig, 'flow.config.{0}').replace(regreplace, 'f-' + name);
 
 				if (com.js) {
 					var tmp = com.js.replace(regid, com.id).replace(regreplace, name).replace(regicon, com.icon).replace(regname, com.name);
@@ -817,6 +848,12 @@
 
 				com.css && css.push(com.css.replace(regid, com.id).replace(regreplace, 'f-' + name));
 				var g = com.group || 'Common';
+
+				com.groupclass = 'group_' + HASH(g).toString(36);
+
+				if (!colors[com.groupclass])
+					colors[com.groupclass] = Thelpers.color(g);
+
 				if (groups[g])
 					groups[g].push(com);
 				else
@@ -831,8 +868,11 @@
 			var arr = [];
 			for (var key in groups) {
 				groups[key].quicksort('name');
-				arr.push({ name: key, items: groups[key] });
+				arr.push({ name: key, color: Thelpers.color(key), items: groups[key] });
 			}
+
+			for (var key in colors)
+				css.push('.' + key + ' header i{background:' + colors[key] + '}');
 
 			arr.quicksort('name');
 			CSS(css.join(''), 'flowcomponents');
@@ -874,6 +914,13 @@
 				UPD('?.data', 'update');
 				setTimeout(ASETTER('websocket/send', { TYPE: 'refresh' }), 1000);
 			}
+
+			if (!init) {
+				init = true;
+				if (!response.length)
+					SET('common.form', 'newflow');
+			}
+
 		};
 
 		exports.pause = function() {
@@ -914,13 +961,9 @@
 			opt.items = [];
 			opt.items.push({ id: 'export', name: '@(Export to the clipboard)', icon: 'fa fa-clipboard-check' });
 			opt.items.push({ id: 'exportcomponent', name: '@(Export as a component)', icon: 'fas fa-plug' });
-
 			opt.items.push('-');
 			opt.items.push({ id: 'curvedlines', name: '@(Curved lines)', icon: 'fas fa-bezier-curve', selected: common.curvedlines == true });
-
-			if (model.head.version >= 8)
-				opt.items.push({ id: 'reset_stats', name: '@(Reset stats)', icon: 'fas fa-chart-line' });
-
+			opt.items.push({ id: 'reset_stats', name: '@(Reset stats)', icon: 'fas fa-chart-line' });
 			opt.items.push('-');
 			opt.items.push({ id: 'clear', name: '@(Clear)', icon: 'far fa-trash-alt red' });
 
@@ -1031,6 +1074,7 @@
 				case 'flow/status':
 					SET('flow.status.' + msg.id, msg.data);
 					W.flowinstances.exec(msg.id, 'status', msg.data);
+					setTimeout2('flow.refresh', ACMD('flow.refresh'), 500, 2 * 8);
 					break;
 
 				case 'flow/redraw':
@@ -1053,7 +1097,7 @@
 					flow.data[msg.id].note = msg.data;
 					SET('flow.note.' + msg.id, msg.data);
 					if (common.page === 'flow')
-						CMD('flow.refresh');
+						setTimeout(ACMD('flow.refresh'), 100);
 					W.flowinstances.exec(msg.id, 'note', msg.data);
 					break;
 
@@ -1165,8 +1209,7 @@
 
 		exports.component_contextmenu = function(el, e) {
 
-			var id = el.attrd2('id');
-
+			var id = ATTRD(el);
 			var component = flow.components.findItem('id', id);
 			if (TYPES[component.type])
 				return;
@@ -1177,10 +1220,16 @@
 			opt.items = [];
 			opt.items.push(component.name);
 			component.readme && opt.items.push({ id: 'readme', name: '@(Read information)', icon: 'fa fa-info-circle blue' });
-			opt.items.push({ id: 'edit', name: '@(Edit)', icon: 'fas fa-laptop-code' });
-			opt.items.push({ id: 'clone', name: '@(Clone)', icon: 'far fa-clone' });
-			opt.items.push({ id: 'copy', name: '@(Copy to clipboard)', icon: 'far fa-copy' });
-			opt.items.push({ id: 'copy2', name: '@(Copy source-code)', icon: 'far fa-copy' });
+
+			var meta = component.meta || EMPTYOBJECT;
+
+			if (!meta.readonly) {
+				opt.items.push({ id: 'edit', name: '@(Edit)', icon: 'fas fa-laptop-code' });
+				opt.items.push({ id: 'clone', name: '@(Clone)', icon: 'far fa-clone' });
+				opt.items.push({ id: 'copy', name: '@(Copy to clipboard)', icon: 'far fa-copy' });
+				opt.items.push({ id: 'copy2', name: '@(Copy source-code)', icon: 'far fa-copy' });
+			}
+
 			opt.items.push('-');
 			opt.items.push({ id: 'remove', name: '@(Remove)', icon: 'fas fa-trash-o red' });
 			opt.callback = function(item) {
@@ -1222,8 +1271,28 @@
 			SETTER('menu/show', opt);
 		};
 
+		exports.selected_settings = function() {
+			var info = exports.data.info;
+			if (info.type === 'group')
+				exports.groupedit(info.selected);
+			else
+				exports.settings(info.selected);
+		};
+
+		exports.selected_remove = function() {
+			CMD('flow.selected.clear');
+		};
+
 		exports.info = function() {
-			var head = GET('?.head');
+
+			var model = exports.data;
+
+			if (model.info.type === 'component') {
+				exports.readme(model.info.selected.component);
+				return;
+			}
+
+			var head = model.head;
 			RECONFIGURE('#readme', { title: head.name, icon: head.icon || 'fas fa-question-circle' });
 			var body = '';
 
@@ -1325,6 +1394,27 @@
 			CodeMirror.runMode(code.replace(/\t/g, '  '), type, el[0]);
 		});
 	});
+
+	isTOUCH && (function() {
+
+		var delay;
+
+		$(document).on('touchstart touchmove touchend', '.component,.connection,.ui-flow-group', function(e) {
+
+			if (e.type === 'touchstart') {
+				delay && clearTimeout(delay);
+				delay = setTimeout(function(touch) {
+					delay = null;
+					EXEC('flow/contextmenu', { pageX: touch.pageX, pageY: touch.pageY });
+				}, 2000, e.touches[0]);
+				return;
+			}
+
+			delay && clearTimeout(delay);
+			delay = null;
+		});
+
+	})();
 
 	Thelpers.url = function(val) {
 		var index = val.indexOf('/', 10);
