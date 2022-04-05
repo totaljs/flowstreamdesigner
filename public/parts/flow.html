@@ -100,7 +100,6 @@
 <!-- A temporary repository for components settings -->
 <div id="flow_repo" class="hidden"></div>
 <div data---="importer__common.form__if:groupform;url:/forms/group.html"></div>
-<div data---="importer__common.form__if:newflow;url:/forms/new.html"></div>
 
 <script>
 
@@ -431,7 +430,7 @@
 
 			settings_data = eventdata;
 			settings_current = instance;
-			setTimeout(() => $('#flow_settings').rclass('invisible'), 1000);
+			$('#flow_settings').rclass('invisible', 1000);
 			SETTER('#settingsvalidation/setPath', path);
 			SET('flow.settings.{0} @reset'.format(id), config);
 			SET('common.form', 'settings');
@@ -446,7 +445,7 @@
 			NUL('common.form');
 		};
 
-		exports.exporttocomponent = function() {
+exports.exporttocomponent = function() {
 			SETTER('approve/show', '@(Are you sure you want to create a component from this FlowStream to the clipboard?)', '"fas fa-file-export" @(Export)', function() {
 				SETTER('websocket/send', { TYPE: 'export', callback: ASETTER('message/response', function(response) {
 
@@ -455,6 +454,8 @@
 					var outputs = [];
 
 					for (var key in flow.design) {
+						if (key === 'groups')
+							continue;
 						var fi = flow.design[key];
 						var template = fi.template || fi.meta; // due to backward compatibility
 						if (template.type === 'input')
@@ -464,7 +465,6 @@
 					}
 
 					var make = `function(instance, config) {
-
 		var schema = CLONE(instance.module.flowstreamschema);
 		schema.variables = config;
 		schema.id = instance.id;
@@ -472,7 +472,7 @@
 		var stream;
 
 		// Backward compatibility
-		stream = instance.newflowstream(schema, true, function(err, worker) {
+		stream = instance.newflowstream(schema, {0}, function(err, worker) {
 			stream = worker;
 			if (stream) {
 				stream.output = function(fid, data, tfsid, tid) {
@@ -489,7 +489,7 @@
 		}
 
 		instance.message = function($) {
-			stream && stream.input(null, null, $.toindex, $.data);
+			stream && stream.input(null, null, $.input, $.data);
 			$.destroy();
 		};
 
@@ -501,7 +501,7 @@
 			stream && stream.destroy();
 		};
 
-	};`;
+	};`.format(flow.worker ? ('\'' + flow.worker + '\'') : 'false');
 
 					var builder = [];
 					builder.push('<scri' + 'pt total>');
@@ -821,6 +821,8 @@
 						$(arr[i]).css('background-color', Thelpers.color(arr[i].innerHTML));
 					target.aclass('tms-' + type);
 				}
+
+				el.tclass('transparent', com.meta && com.meta.hidden ? true : false);
 				target.aclass('f-' + self.name);
 			}
 			W.flowinstances.init(self.name, self, el);
@@ -923,12 +925,8 @@
 				setTimeout(ASETTER('websocket/send', { TYPE: 'refresh' }), 1000);
 			}
 
-			if (!init) {
+			if (!init)
 				init = true;
-				if (!response.length)
-					SET('common.form', 'newflow');
-			}
-
 		};
 
 		exports.pause = function() {
