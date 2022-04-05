@@ -149,6 +149,7 @@ body.ui-dark { background-color: #202020 !important; }
 .ui-dark .ui-flow-h .input.connected { color: #FFF; }
 .ui-dark .ui-flow .component { box-shadow: 2px 2px 13px rgba(0,0,0,0.25); }
 
+.transparent { visibility: hidden; pointer-events: none; }
 .markdown pre { background-color: #F8F8F8; overflow: hidden; padding: 10px; border-radius: var(--radius); }
 .ui-dark .markdown pre { background-color: #272727; }
 
