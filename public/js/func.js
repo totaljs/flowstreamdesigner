@@ -452,3 +452,13 @@ FUNC.pref_read = function(key) {
 	var id = 'flow' + HASH(common.socket).toString(36) + '_' + key;
 	return PREF[id];
 };
+
+Thelpers.highlight = function(val, colorize) {
+
+	if (!val)
+		return val;
+
+	return val.replace(/\{.*?\}/g, function(text) {
+		return '<code' + (colorize ? ' style="color:{0}"'.format(Thelpers.color(text)) : '') + '>' + text + '</code>';
+	});
+};
