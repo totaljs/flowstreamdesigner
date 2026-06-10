@@ -1,17 +1,8 @@
 # FlowStream Designer
 
-- [Website](https://www.totaljs.com/flowstream/)
-- [__Documentation__](https://docs.totaljs.com/total4/5aed1001bj51c/)
-- MIT license
+This project contains only the Flow designer with static data without server side implementation. The designer attempts to connect to the default WebSocket endpoint `/` of a running FlowStream instance.
 
-__Requirements__:
-
-- Total.js 4 - `$ npm install total4`
-
-```bash
-cd builder
-node index.js
-```
+- Designer: `http://127.0.0.1:8000/designer.html`
 
 ## Contact
 
